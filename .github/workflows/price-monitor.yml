@@ -13,6 +13,8 @@ jobs:
   scrape-and-update:
     runs-on: ubuntu-latest
     timeout-minutes: 10
+    permissions:
+      contents: write  # 必须开启写权限才能 push 回仓库
 
     steps:
       - name: Checkout repo
