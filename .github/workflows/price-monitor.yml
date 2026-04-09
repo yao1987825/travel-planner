@@ -54,7 +54,7 @@ try:
 except Exception as e:
     print(f'Search failed: {e}')
 "
-          shell: python
+        shell: python
 
       - name: Run scraper
         run: python scripts/food_price_scraper.py
