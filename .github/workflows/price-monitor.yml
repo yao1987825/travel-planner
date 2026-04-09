@@ -1,0 +1,51 @@
+name: Food Price Monitor
+
+on:
+  schedule:
+    # 每天北京时间 08:00 执行（约 UTC 00:00）
+    - cron: "0 0 * * *"
+  workflow_dispatch:  # 支持手动触发
+  push:
+    paths:
+      - "scripts/food_price_scraper.py"
+
+jobs:
+  scrape-and-update:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: |
+          pip install xlrd==1.2.0
+
+      - name: Run scraper
+        run: python scripts/food_price_scraper.py
+
+      - name: Check for changes
+        id: changed
+        run: |
+          if git diff --exit-code data/; then
+            echo "changed=false" >> $GITHUB_OUTPUT
+            echo "No price changes detected."
+          else
+            echo "changed=true" >> $GITHUB_OUTPUT
+            echo "Price data changed!"
+          fi
+
+      - name: Commit and push
+        if: steps.changed.outputs.changed == 'true'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add data/
+          git commit -m "data: update food prices $(date '+%Y-%m-%d')"
+          git push

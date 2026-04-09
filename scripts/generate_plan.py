@@ -19,6 +19,75 @@ from datetime import date, timedelta
 from pathlib import Path
 from typing import Optional
 
+
+# ─── 实时价格数据加载 ──────────────────────────────────────────────────────
+def load_live_price_data() -> dict:
+    """
+    加载 GitHub Actions 定时更新的实时价格数据。
+    文件路径：data/latest_prices.json
+    如果文件不存在或读取失败，返回空字典（静默降级）。
+    """
+    # 优先从项目根目录读取（独立运行场景）
+    script_dir = Path(__file__).parent.resolve()
+    project_root = script_dir.parent
+    price_file = project_root / "data" / "latest_prices.json"
+
+    # Dify mini_claw 插件场景：skill 目录下的 data/
+    skill_root = Path(__file__).parent.parent
+    skill_price_file = skill_root / "data" / "latest_prices.json"
+
+    for fp in [price_file, skill_price_file]:
+        if fp.exists():
+            try:
+                with open(fp, encoding="utf-8") as f:
+                    return json.load(f)
+            except Exception:
+                pass
+    return {}
+
+
+def format_price_context(price_data: dict, city: str) -> str:
+    """生成城市实时价格参考文本"""
+    if not price_data:
+        return ""
+
+    # 找到对应城市的价格数据
+    city_data = price_data.get("cities", {}).get(city)
+    if not city_data or not city_data.get("items"):
+        return ""
+
+    items = city_data["items"]
+    lines = [f"\n## {city} · 实时市场价格参考（{price_data.get('updated_at','')[:10]}）\n"]
+
+    # 按类别分组
+    by_cat = {}
+    for item in items:
+        by_cat.setdefault(item.get("category", "其他"), []).append(item)
+
+    cat_icons = {
+        "蔬菜": "🥬", "肉禽蛋": "🥩", "鱼虾": "🐟",
+        "粮食": "🍚", "食用油": "🫒", "水果": "🍎",
+    }
+    for cat in ["蔬菜", "肉禽蛋", "鱼虾", "粮食", "食用油", "水果"]:
+        if cat in by_cat:
+            icon = cat_icons.get(cat, "📦")
+            lines.append(f"**{icon} {cat}**：")
+            for item in by_cat[cat][:5]:  # 每类最多5项
+                name = item.get("name", "")
+                price = item.get("price", "—")
+                unit = item.get("unit", "")
+                p_range = item.get("price_range", "")
+                if p_range:
+                    lines.append(f"  - {name}：{price} {unit}（市场区间 {p_range}）")
+                else:
+                    lines.append(f"  - {name}：{price} {unit}")
+            lines.append("")
+
+    if city_data.get("note"):
+        lines.append(f"> {city_data['note']}")
+
+    return "\n".join(lines)
+
 # ─── 内置上海景点库 ────────────────────────────────────────────────────────────
 SHANGHAI_ATTRACTIONS = [
     {
@@ -349,6 +418,10 @@ class TravelPlanner:
             skip_names = "、".join(s["name"] for s in skipped[:3])
             summary += f"因时间或偏好因素，{skip_names}等暂未纳入行程。"
 
+        # 加载实时价格数据
+        live_price_data = load_live_price_data()
+        price_context_md = format_price_context(live_price_data, self.city)
+
         return {
             "plan_id": None,
             "title": f"{self.city}{self.days}日游 · {style_str}主题",
@@ -359,7 +432,9 @@ class TravelPlanner:
             "ai_summary": summary,
             "highlights": highlights,
             "skipped": skipped,
-            "days": days
+            "days": days,
+            "price_context": price_context_md,
+            "price_updated_at": live_price_data.get("updated_at", ""),
         }
 
 
@@ -557,6 +632,23 @@ def print_plan(plan: dict):
     print(f"📅 行程天数: {plan['total_days']} 天")
     print(f"💰 预估花费: ¥{plan['est_total_cost']:.0f} 元")
     print(f"\n📝 行程概述:\n   {plan['ai_summary']}")
+
+    # 实时价格参考
+    if plan.get("price_context"):
+        print("\n" + "=" * 60)
+        print("  📊 实时市场价格参考（政府公开数据，每日自动更新）")
+        print("=" * 60)
+        for line in plan["price_context"].split("\n"):
+            if line.startswith("## "):
+                continue
+            elif line.startswith("**"):
+                print(f"  {line}")
+            elif line.startswith("  - "):
+                print(f"    {line[4:]}")
+            elif line.startswith("> "):
+                print(f"    {line}  ")
+            elif line.strip():
+                print(f"  {line}")
 
     print(f"\n⭐ 行程亮点: {' | '.join(plan['highlights'])}")
 
