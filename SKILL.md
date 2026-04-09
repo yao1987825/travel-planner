@@ -35,7 +35,7 @@ metadata: >
 
 ## 二、支持城市
 
-郴州、长沙、广州、上海（含周边联游）
+郴州、长沙、衡阳、广州、上海（含周边联游）
 
 ---
 
@@ -243,6 +243,7 @@ GET https://restapi.amap.com/v3/direction/walking
 | 文件 | 内容 |
 |------|------|
 | `references/cities_attractions.md` | 郴州/长沙/广州/上海四城景点数据库（含门票、时长、省钱等级） |
+| `references/food_guide.md` | 四城美食价格手册（必吃小吃、推荐店铺、日均预算、省钱攻略） |
 | `references/money_saving.md` | 全链路省钱攻略（预算分配、时间规划、门票/餐饮/住宿/交通） |
 | `references/travel_schema.md` | 数据库表结构（5张表 + 索引 + 示例数据） |
 | `references/travel_api.md` | RESTful API 接口定义（6个端点 + 错误码） |
