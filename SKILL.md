@@ -11,7 +11,7 @@ read-when: >
   景点之间怎么走、交通方式、公交/驾车路线、高德地图导航、
   查询天气、出发前看天气、穿衣建议、紫外线指数
 metadata: >
-  {"openclaw":{"os":["linux","darwin","win32"],"requires":{"bins":["python3","python","node","npm"],"env":["AMAP_KEY"]}}}
+  {"openclaw":{"os":["linux","darwin","win32"],"requires":{"env":["AMAP_KEY"]},"note":"本 Skill 不执行脚本，所有功能通过 AI 直接调用 HTTP API 完成"}}
 ---
 
 # Travel Planner Skill — 个性化旅游攻略自动规划
@@ -97,36 +97,114 @@ python scripts/generate_plan.py --profile profile.json --output ./output
 - `travel_schema.sql` — 数据库建表 SQL
 - `travel_api.py` — FastAPI 代码骨架
 
-### Step 3：天气预报（如需要）
+### Step 3：天气预报（直接调用 API）
 
-```bash
-# 实时 + 未来3天 + 生活指数（穿衣/紫外线/舒适度）
-python scripts/amap_nav.py --weather 上海
+当用户询问目的地天气时，**直接构造 HTTP 请求**调用高德天气 API，不需要运行任何脚本。
 
-# 仅实时天气
-python scripts/amap_nav.py --weather-live 郴州
+#### 实时 + 未来3天 + 生活指数
+
+```
+GET https://restapi.amap.com/v3/weather/weatherInfo
+  ?key={AMAP_KEY}
+  &city=郴州
+  &extensions=all
+  &output=JSON
 ```
 
-### Step 4：导航规划（如需要）
+#### 仅实时天气
 
-**前提**：需配置 `AMAP_KEY`（免费注册 https://lbs.amap.com/）
-
-```bash
-# 单段路线查询
-python scripts/amap_nav.py --from "上海外滩" --to "豫园" --mode transit --city 上海
-
-# 从行程 JSON 自动批量规划
-python scripts/amap_nav.py --plan ./output/travel_plan.json --mode transit --city 上海 --output nav_result.json
-
-# 交互式
-python scripts/amap_nav.py --interactive
+```
+GET https://restapi.amap.com/v3/weather/weatherInfo
+  ?key={AMAP_KEY}
+  &city=郴州
+  &extensions=base
+  &output=JSON
 ```
 
-导航功能：
-- 地理编码（地名 → 经纬度）
-- 驾车 / 公交 / 步行三种路线
-- **TSP 最优顺序推荐**（穷举法，≤8景点时）
-- 全行程导航汇总（总距离、总耗时、总费用）
+#### 响应解析
+
+| 字段路径 | 含义 |
+|---------|------|
+| `lives[0].weather` | 实时天气（如"多云"） |
+| `lives[0].temperature` | 实时气温（如"26"） |
+| `lives[0].winddirection` | 风向（如"东南"） |
+| `lives[0].windpower` | 风力（如"≤3"） |
+| `lives[0].humidity` | 湿度（如"74"） |
+| `lives[0].report_time` | 数据更新时间 |
+| `forecasts[0].casts[].date` | 预报日期 |
+| `forecasts[0].casts[].dayweather` | 白天天气 |
+| `forecasts[0].casts[].daytemp` | 白天最高温 |
+| `forecasts[0].casts[].nighttemp` | 夜间最低温 |
+| `forecasts[0].casts[].daywind` | 白天风向 |
+| `forecasts[0].casts[].daypower` | 白天风力等级 |
+| `forecasts[0].index[].iname` | 生活指数名称 |
+| `forecasts[0].index[].detail` | 指数详情 |
+
+#### 注意事项
+
+- **不支持历史天气**：高德天气 API 只能查实时和未来预报，无法查询过去某一天的天气
+- **城市名需准确**：使用城市中文全称，如"郴州""长沙""上海"
+- **免费配额**：个人开发者每日 5000 次
+
+### Step 4：导航规划（直接调用 API）
+
+当用户询问景点间路线时，分两步：① 先调用地理编码 API 获取坐标，② 再调用路线规划 API。
+
+#### 第一步：地理编码（地名 → 经纬度）
+
+```
+GET https://restapi.amap.com/v3/geocode/geo
+  ?key={AMAP_KEY}
+  &address=上海外滩
+  &city=上海
+```
+
+响应中 `geocodes[0].location` 格式为 `经度,纬度`（如 `121.490,31.240`）。
+
+#### 第二步：路线规划
+
+**驾车路线**
+```
+GET https://restapi.amap.com/v3/direction/driving
+  ?key={AMAP_KEY}
+  &origin=121.490,31.240
+  &destination=121.518,31.228
+  &strategy=0        # 0=速度优先, 2=距离优先
+  &extensions=base
+```
+
+**公交路线**（城内）
+```
+GET https://restapi.amap.com/v3/direction/transit/integrated
+  ?key={AMAP_KEY}
+  &origin=121.490,31.240
+  &destination=121.518,31.228
+  &city=上海
+  &strategy=0        # 0=最快捷, 1=最经济
+  &extensions=base
+```
+
+**步行路线**
+```
+GET https://restapi.amap.com/v3/direction/walking
+  ?key={AMAP_KEY}
+  &origin=121.490,31.240
+  &destination=121.518,31.228
+```
+
+#### 响应解析
+
+| 路线类型 | 关键路径 |
+|---------|---------|
+| 驾车 | `route.paths[0].distance`(m) / `duration`(s) |
+| 公交 | `route.transits[0].duration`(s) / `cost`(元) |
+| 步行 | `route.paths[0].distance`(m) / `duration`(s) |
+
+#### 注意事项
+
+- 地理编码时**务必传 city 参数**，否则同名地点会产生歧义
+- 驾车策略 `strategy=0` 速度优先，`strategy=2` 距离优先
+- 公交 `city` 参数填**起点所在城市**
 
 ---
 
@@ -169,9 +247,10 @@ python scripts/amap_nav.py --interactive
 | `references/travel_schema.md` | 数据库表结构（5张表 + 索引 + 示例数据） |
 | `references/travel_api.md` | RESTful API 接口定义（6个端点 + 错误码） |
 | `references/amap_api.md` | 高德地图 Web API 参考（地理编码/驾车/公交/步行/天气） |
-| `scripts/generate_plan.py` | 核心规划器（景点库、评分算法、代码生成） |
-| `scripts/amap_nav.py` | 高德导航工具（地理编码 + 三种路线 + TSP优化 + 天气预报） |
 | `.env.example` | 环境变量示例（含 AMAP_KEY 配置说明） |
+
+> ⚠️ **重要**：本 Skill **不通过脚本执行**。所有功能均通过 AI 直接调用 HTTP API 完成。
+> `scripts/` 目录下的文件仅作参考实现，不作为执行入口。
 
 ---
 
@@ -231,22 +310,23 @@ python scripts/amap_nav.py --interactive
 **处理流程**:
 1. 识别：dest_city=郴州, days=3, budget=2500, group_type=family, styles=[自然]
 2. 收集补充：出发日期、孩子年龄（影响景点数量）
-3. 运行 `generate_plan.py` 生成行程
-4. 推荐省钱组合：东江湖(85)+高椅岭(95)+免费景点组合，3日总门票≤¥300
-5. 如需要：运行 `amap_nav.py` 规划景点间驾车路线
+3. 从 `references/cities_attractions.md` 中筛选郴州景点，按评分+体力约束排列
+4. 推荐省钱组合：东江湖(¥85)+高椅岭(¥95)+免费景点组合，3日总门票≤¥300
+5. 如用户需要天气：直接调用高德天气 API
 
 **用户**: 帮我查下从橘子洲头到岳麓山怎么走最划算？
 
 **处理流程**:
 1. 识别：高德地图导航查询需求
-2. 检查：用户是否提供了 AMAP_KEY（未提供则提示申请）
-3. 调用 `amap_nav.py --from "橘子洲头" --to "岳麓山" --mode transit --city 长沙`
-4. 返回：公交方案（含地铁换乘说明、耗时、费用）
+2. 检查：AMAP_KEY 是否已在环境变量中配置
+3. 调用地理编码 API：获取"橘子洲头"和"岳麓山"的经纬度
+4. 调用公交路线 API（strategy=1 最经济模式）
+5. 返回：公交方案（含地铁换乘说明、耗时、费用）
 
 **用户**: 出发去郴州前，帮我看看那边天气怎么样？
 
 **处理流程**:
-1. 识别：天气预报查询需求
-2. 调用 `amap_nav.py --weather 郴州`
+1. 识别：天气预报查询需求（高德天气 API）
+2. 调用高德天气 API（extensions=all），传入 city=郴州
 3. 返回：实时天气 + 未来3天预报 + 穿衣指数/紫外线/舒适度
 4. 额外建议：根据预报给出行程微调建议（如暴雨天改期高椅岭）
