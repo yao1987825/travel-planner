@@ -137,6 +137,7 @@
     ]
   },
   {
+<<<<<<< HEAD
     "date": "2026-04-09",
     "city": "上海",
     "items": [
@@ -145,26 +146,202 @@
         "name": "猪精瘦肉",
         "price": "17.67",
         "unit": "元/500克",
+=======
+    "date": "2026-04-10",
+    "city": "郴州",
+    "items": [
+      {
+        "category": "水产品",
+        "name": "鲢鱼",
+        "price": 17.97,
+        "unit": "元/公斤",
+        "trend": ""
+      },
+      {
+        "category": "水产品",
+        "name": "对虾",
+        "price": 68.32,
+        "unit": "元/公斤",
+        "trend": ""
+      },
+      {
+        "category": "水产品",
+        "name": "鲤鱼",
+        "price": 22.19,
+        "unit": "元/公斤",
+        "trend": ""
+      },
+      {
+        "category": "水产品",
+        "name": "草鱼",
+        "price": 19.0,
+        "unit": "元/公斤",
+        "trend": ""
+      },
+      {
+        "category": "水产品",
+        "name": "鲫鱼",
+        "price": 26.31,
+        "unit": "元/公斤",
+        "trend": ""
+      },
+      {
+        "category": "水产品",
+        "name": "大带鱼",
+        "price": 33.7,
+        "unit": "元/公斤",
+        "trend": ""
+      },
+      {
+        "category": "水产品",
+        "name": "大黄鱼",
+        "price": 51.6,
+        "unit": "元/公斤",
+        "trend": ""
+      },
+      {
+        "category": "水产品",
+        "name": "河蟹",
+        "price": 119.8,
+        "unit": "元/公斤",
+>>>>>>> 5060c8e (feat: add 郴州 food price scraper (cif.mofcom.gov.cn via curl -k))
         "trend": ""
       },
       {
         "category": "肉禽蛋",
         "name": "鸡蛋",
+<<<<<<< HEAD
         "price": "4.84",
         "unit": "元/500克",
+=======
+        "price": 11.81,
+        "unit": "元/公斤",
+        "trend": ""
+      },
+      {
+        "category": "肉禽蛋",
+        "name": "白条鸡",
+        "price": 27.15,
+        "unit": "元/公斤",
+        "trend": ""
+      },
+      {
+        "category": "肉禽蛋",
+        "name": "猪肉",
+        "price": 26.98,
+        "unit": "元/公斤",
+        "trend": ""
+      },
+      {
+        "category": "肉禽蛋",
+        "name": "猪后腿肉",
+        "price": 24.85,
+        "unit": "元/公斤",
+        "trend": ""
+      },
+      {
+        "category": "肉禽蛋",
+        "name": "牛肉",
+        "price": 81.96,
+        "unit": "元/公斤",
+        "trend": ""
+      },
+      {
+        "category": "肉禽蛋",
+        "name": "牛腿肉",
+        "price": 83.26,
+        "unit": "元/公斤",
+        "trend": ""
+      },
+      {
+        "category": "肉禽蛋",
+        "name": "羊肉",
+        "price": 90.0,
+        "unit": "元/公斤",
+        "trend": ""
+      },
+      {
+        "category": "肉禽蛋",
+        "name": "羊腿肉",
+        "price": 73.8,
+        "unit": "元/公斤",
+        "trend": ""
+      },
+      {
+        "category": "水果",
+        "name": "苹果",
+        "price": 13.43,
+        "unit": "元/公斤",
+        "trend": ""
+      },
+      {
+        "category": "水果",
+        "name": "香蕉",
+        "price": 9.07,
+        "unit": "元/公斤",
+        "trend": ""
+      },
+      {
+        "category": "水果",
+        "name": "葡萄",
+        "price": 18.68,
+        "unit": "元/公斤",
+        "trend": ""
+      },
+      {
+        "category": "水果",
+        "name": "梨",
+        "price": 9.6,
+        "unit": "元/公斤",
+        "trend": ""
+      },
+      {
+        "category": "水果",
+        "name": "芒果",
+        "price": 16.73,
+        "unit": "元/公斤",
+        "trend": ""
+      },
+      {
+        "category": "水果",
+        "name": "西瓜",
+        "price": 8.44,
+        "unit": "元/公斤",
+        "trend": ""
+      },
+      {
+        "category": "水果",
+        "name": "柑橘",
+        "price": 8.77,
+        "unit": "元/公斤",
+        "trend": ""
+      },
+      {
+        "category": "水果",
+        "name": "菠萝",
+        "price": 8.34,
+        "unit": "元/公斤",
+>>>>>>> 5060c8e (feat: add 郴州 food price scraper (cif.mofcom.gov.cn via curl -k))
         "trend": ""
       },
       {
         "category": "粮食",
+<<<<<<< HEAD
         "name": "粳米",
         "price": 2.8,
         "unit": "元/500克",
         "sample_count": 51,
         "price_range": "2.3~3.8",
+=======
+        "name": "粮食",
+        "price": 5.44,
+        "unit": "元/公斤",
+>>>>>>> 5060c8e (feat: add 郴州 food price scraper (cif.mofcom.gov.cn via curl -k))
         "trend": ""
       },
       {
         "category": "食用油",
+<<<<<<< HEAD
         "name": "花生油(鲁花)",
         "price": 152.38,
         "unit": "元/5升",
@@ -269,6 +446,11 @@
         "unit": "元/500克",
         "sample_count": 61,
         "price_range": "1.6~4.1",
+=======
+        "name": "食用油",
+        "price": 18.82,
+        "unit": "元/升",
+>>>>>>> 5060c8e (feat: add 郴州 food price scraper (cif.mofcom.gov.cn via curl -k))
         "trend": ""
       }
     ]

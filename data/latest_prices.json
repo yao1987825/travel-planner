@@ -1,5 +1,9 @@
 {
+<<<<<<< HEAD
   "updated_at": "2026-04-09T18:52:45.210873",
+=======
+  "updated_at": "2026-04-10T03:11:13.662068",
+>>>>>>> 5060c8e (feat: add 郴州 food price scraper (cif.mofcom.gov.cn via curl -k))
   "cities": {
     "上海": {
       "city": "上海",
@@ -139,6 +143,199 @@
         }
       ],
       "note": "2026年04月09日本市主要蔬菜品种平均零售价环比上一工作日5涨24跌5平。其中，青菜和鸡毛菜平均零售价2.65元/500克和3.85元/500克，环比分别持平和下跌-0.8%。 &emsp;&emsp;今日，主要肉禽蛋品种平均零售价环比上一工作日3涨4跌2平。其中，猪精瘦肉价格17.67元/500克，鸡蛋价格4.84元/500克，环比均持平。"
+<<<<<<< HEAD
+=======
+    },
+    "郴州": {
+      "city": "郴州",
+      "date": "2026-04-10",
+      "source": "郴州市商务局 (cif.mofcom.gov.cn)",
+      "items": [
+        {
+          "category": "水产品",
+          "name": "鲢鱼",
+          "price": 17.97,
+          "unit": "元/公斤",
+          "trend": ""
+        },
+        {
+          "category": "水产品",
+          "name": "对虾",
+          "price": 68.32,
+          "unit": "元/公斤",
+          "trend": ""
+        },
+        {
+          "category": "水产品",
+          "name": "鲤鱼",
+          "price": 22.19,
+          "unit": "元/公斤",
+          "trend": ""
+        },
+        {
+          "category": "水产品",
+          "name": "草鱼",
+          "price": 19.0,
+          "unit": "元/公斤",
+          "trend": ""
+        },
+        {
+          "category": "水产品",
+          "name": "鲫鱼",
+          "price": 26.31,
+          "unit": "元/公斤",
+          "trend": ""
+        },
+        {
+          "category": "水产品",
+          "name": "大带鱼",
+          "price": 33.7,
+          "unit": "元/公斤",
+          "trend": ""
+        },
+        {
+          "category": "水产品",
+          "name": "大黄鱼",
+          "price": 51.6,
+          "unit": "元/公斤",
+          "trend": ""
+        },
+        {
+          "category": "水产品",
+          "name": "河蟹",
+          "price": 119.8,
+          "unit": "元/公斤",
+          "trend": ""
+        },
+        {
+          "category": "肉禽蛋",
+          "name": "鸡蛋",
+          "price": 11.81,
+          "unit": "元/公斤",
+          "trend": ""
+        },
+        {
+          "category": "肉禽蛋",
+          "name": "白条鸡",
+          "price": 27.15,
+          "unit": "元/公斤",
+          "trend": ""
+        },
+        {
+          "category": "肉禽蛋",
+          "name": "猪肉",
+          "price": 26.98,
+          "unit": "元/公斤",
+          "trend": ""
+        },
+        {
+          "category": "肉禽蛋",
+          "name": "猪后腿肉",
+          "price": 24.85,
+          "unit": "元/公斤",
+          "trend": ""
+        },
+        {
+          "category": "肉禽蛋",
+          "name": "牛肉",
+          "price": 81.96,
+          "unit": "元/公斤",
+          "trend": ""
+        },
+        {
+          "category": "肉禽蛋",
+          "name": "牛腿肉",
+          "price": 83.26,
+          "unit": "元/公斤",
+          "trend": ""
+        },
+        {
+          "category": "肉禽蛋",
+          "name": "羊肉",
+          "price": 90.0,
+          "unit": "元/公斤",
+          "trend": ""
+        },
+        {
+          "category": "肉禽蛋",
+          "name": "羊腿肉",
+          "price": 73.8,
+          "unit": "元/公斤",
+          "trend": ""
+        },
+        {
+          "category": "水果",
+          "name": "苹果",
+          "price": 13.43,
+          "unit": "元/公斤",
+          "trend": ""
+        },
+        {
+          "category": "水果",
+          "name": "香蕉",
+          "price": 9.07,
+          "unit": "元/公斤",
+          "trend": ""
+        },
+        {
+          "category": "水果",
+          "name": "葡萄",
+          "price": 18.68,
+          "unit": "元/公斤",
+          "trend": ""
+        },
+        {
+          "category": "水果",
+          "name": "梨",
+          "price": 9.6,
+          "unit": "元/公斤",
+          "trend": ""
+        },
+        {
+          "category": "水果",
+          "name": "芒果",
+          "price": 16.73,
+          "unit": "元/公斤",
+          "trend": ""
+        },
+        {
+          "category": "水果",
+          "name": "西瓜",
+          "price": 8.44,
+          "unit": "元/公斤",
+          "trend": ""
+        },
+        {
+          "category": "水果",
+          "name": "柑橘",
+          "price": 8.77,
+          "unit": "元/公斤",
+          "trend": ""
+        },
+        {
+          "category": "水果",
+          "name": "菠萝",
+          "price": 8.34,
+          "unit": "元/公斤",
+          "trend": ""
+        },
+        {
+          "category": "粮食",
+          "name": "粮食",
+          "price": 5.44,
+          "unit": "元/公斤",
+          "trend": ""
+        },
+        {
+          "category": "食用油",
+          "name": "食用油",
+          "price": 18.82,
+          "unit": "元/升",
+          "trend": ""
+        }
+      ],
+      "note": ""
+>>>>>>> 5060c8e (feat: add 郴州 food price scraper (cif.mofcom.gov.cn via curl -k))
     }
   }
 }

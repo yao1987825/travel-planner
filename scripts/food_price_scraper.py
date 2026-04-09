@@ -3,8 +3,8 @@
 食品价格爬虫 - travel-planner 配套工具
 数据来源：
   1. 上海发改委每日主副食品价格 (Excel)
-  2. 中国价格信息网 36城蔬菜/肉禽蛋价格 (HTML)
-  3. 上海发改委价格监管动态页面 (HTML 摘要)
+  2. 郴州市商务局生活必需品周报 (cif.mofcom.gov.cn, via curl -k)
+  3. 中国价格信息网 36城蔬菜/肉禽蛋价格 (HTML)
 
 输出：
   data/latest_prices.json   - 各城市最新价格
@@ -18,6 +18,7 @@ import json
 import datetime
 import urllib.request
 import urllib.error
+import subprocess
 from typing import Optional
 
 # ============================================================
@@ -46,7 +47,6 @@ def fetch(url: str, timeout: int = 15) -> Optional[str]:
     try:
         req = urllib.request.Request(url, headers=HEADERS)
         with urllib.request.urlopen(req, timeout=timeout) as resp:
-            # 处理重定向编码
             charset = "utf-8"
             content_type = resp.headers.get("Content-Type", "")
             if "charset=" in content_type:
@@ -55,6 +55,27 @@ def fetch(url: str, timeout: int = 15) -> Optional[str]:
             return data.decode(charset, errors="replace")
     except Exception as e:
         print(f"  [WARN] fetch failed: {url} -> {e}")
+        return None
+
+
+def fetch_curl(url: str, timeout: int = 15) -> Optional[str]:
+    """
+    用 curl -k 绕过 SSL 证书问题抓取页面。
+    用于访问 cif.mofcom.gov.cn 等有 SSL 握手问题的网站。
+    """
+    try:
+        result = subprocess.run(
+            ["curl", "-k", "-s", "-L", "-A", HEADERS["User-Agent"],
+             "--max-time", str(timeout), url],
+            capture_output=True, timeout=timeout + 5
+        )
+        if result.returncode == 0 and result.stdout:
+            # 移除 BOM
+            content = result.stdout.decode("utf-8-sig", errors="replace")
+            return content
+        return None
+    except Exception as e:
+        print(f"  [WARN] curl fetch failed: {url} -> {e}")
         return None
 
 
@@ -342,8 +363,152 @@ def parse_36city_page(url: str) -> list:
 
 
 # ============================================================
-# 数据源 3：本地政府网站（郴州/长沙/衡阳）
+# 数据源 3：郴州市商务局生活必需品周报（cif.mofcom.gov.cn）
 # ============================================================
+
+def get_chenzhou_report_url() -> Optional[str]:
+    """
+    通过 web search API 查找郴州市最新周报 URL。
+    返回类似: https://cif.mofcom.gov.cn/cif/html/market_scanner/2026/3/xxxx.html
+    """
+    import requests as req
+
+    search_url = (
+        "https://www.bing.com/search?q="
+        "site%3Acif.mofcom.gov.cn+%E9%83%BD%E5%B7%9E+%E7%94%9F%E6%B4%BB%E5%BF%85%E9%9C%80%E5%93%81+%E6%83%85%E5%86%B5%E5%88%86%E6%9E%90+2026"
+    )
+    try:
+        r = req.get(search_url, headers=HEADERS, timeout=15, verify=False)
+        if r.status_code == 200:
+            # 提取 cif.mofcom.gov.cn 的 market_scanner 链接
+            matches = re.findall(
+                r'href="(https?://cif\.mofcom\.gov\.cn/cif/html/market_scanner/\d+/\d+/\d+\.html)"',
+                r.text
+            )
+            if matches:
+                return matches[0]
+    except Exception as e:
+        print(f"  [WARN] Bing search failed: {e}")
+
+    # Fallback: 使用已知最新 URL（手动更新此处）
+    return None
+
+
+def parse_chenzhou_report(html: str) -> dict:
+    """
+    解析郴州市商务局周报页面，提取各品类价格数据。
+    页面文本格式如：蔬菜零售均价8.09元/公斤，西红柿下跌11.5%
+    """
+    result = {
+        "city": "郴州",
+        "date": TODAY,
+        "source": "郴州市商务局 (cif.mofcom.gov.cn)",
+        "items": [],
+        "note": "",
+    }
+
+    # 移除 HTML 标签，纯文本处理
+    text = re.sub(r'<[^>]+>', ' ', html)
+    text = re.sub(r'\s+', ' ', text).strip()
+
+    # 提取总体态势（如"4跌7平"）
+    trend_match = re.search(r'呈["""]([^\"""]{3,20})["""](?:态势|情况)', text)
+    if trend_match:
+        result["note"] = f"本周态势：{trend_match.group(1)}"
+
+    # 已知商品列表（郴州周报常见的监测品种）
+    KNOWN_ITEMS = [
+        # 蔬菜（周报通常只列涨跌明显的品种，蔬菜整体均价在报告中）
+        ("西红柿", "蔬菜"), ("苦瓜", "蔬菜"), ("韭菜", "蔬菜"), ("青椒", "蔬菜"),
+        ("胡萝卜", "蔬菜"), ("芹菜", "蔬菜"), ("土豆", "蔬菜"), ("黄瓜", "蔬菜"),
+        ("茄子", "蔬菜"), ("大白菜", "蔬菜"), ("油菜", "蔬菜"), ("生菜", "蔬菜"),
+        ("菠菜", "蔬菜"), ("豆角", "蔬菜"), ("豆芽", "蔬菜"), ("白菜", "蔬菜"),
+        ("莴笋", "蔬菜"), ("白萝卜", "蔬菜"), ("菜花", "蔬菜"),
+        # 水产品
+        ("鲢鱼", "水产品"), ("对虾", "水产品"), ("鲤鱼", "水产品"),
+        ("草鱼", "水产品"), ("鲫鱼", "水产品"), ("大带鱼", "水产品"),
+        ("大黄鱼", "水产品"), ("河蟹", "水产品"),
+        # 肉禽蛋
+        ("鸡蛋", "肉禽蛋"), ("白条鸡", "肉禽蛋"),
+        ("猪肉", "肉禽蛋"), ("猪后腿肉", "肉禽蛋"),
+        ("牛肉", "肉禽蛋"), ("牛腿肉", "肉禽蛋"),
+        ("羊肉", "肉禽蛋"), ("羊腿肉", "肉禽蛋"),
+        # 水果
+        ("苹果", "水果"), ("香蕉", "水果"), ("葡萄", "水果"),
+        ("梨", "水果"), ("芒果", "水果"), ("西瓜", "水果"),
+        ("柑橘", "水果"), ("菠萝", "水果"),
+        # 粮食/食用油
+        ("粮食", "粮食"), ("食用油", "食用油"),
+    ]
+
+    seen = set()
+
+    # 策略：直接对每个已知商品，在文本中搜索其价格
+    for known_name, cat in KNOWN_ITEMS:
+        # 查找该商品名称在文本中的位置
+        idx = 0
+        while True:
+            pos = text.find(known_name, idx)
+            if pos == -1:
+                break
+            # 从该位置往后找价格：任意内容 + 数字 + 元/公斤
+            snippet = text[pos:pos + 100]
+            price_match = re.search(
+                r'(\d+\.?\d*)\s*元\s*/\s*(公斤|千克|升|500克)',
+                snippet
+            )
+            if price_match:
+                price_str = price_match.group(1)
+                unit = price_match.group(2)
+                try:
+                    p = float(price_str)
+                    if 1 <= p <= 200:
+                        key = (known_name, cat)
+                        if key not in seen:
+                            seen.add(key)
+                            unit_str = "元/升" if unit in ("升", "L") else "元/500克" if unit == "500克" else "元/公斤"
+                            result["items"].append({
+                                "category": cat,
+                                "name": known_name,
+                                "price": round(p, 2),
+                                "unit": unit_str,
+                                "trend": "",
+                            })
+                except ValueError:
+                    pass
+            idx = pos + 1
+
+    return result
+
+
+def fetch_chenzhou_price() -> Optional[dict]:
+    """
+    获取郴州市最新周报数据。
+    策略：
+      1. 通过 Bing search 找最新报告 URL
+      2. 用 curl -k 抓取页面
+      3. 解析 HTML 提取价格
+    """
+    # 尝试环境变量（workflow 可传入最新 URL）
+    env_url = os.environ.get("CHENZHOU_REPORT_URL", "").strip()
+    if env_url:
+        print(f"  使用环境变量指定 URL: {env_url}")
+        html = fetch_curl(env_url)
+        if html:
+            return parse_chenzhou_report(html)
+
+    # Bing 搜索找最新 URL
+    print("  搜索郴州最新周报 URL...")
+    url = get_chenzhou_report_url()
+    if url:
+        print(f"  找到报告: {url}")
+        html = fetch_curl(url)
+        if html:
+            return parse_chenzhou_report(html)
+    else:
+        print("  [WARN] 未找到郴州周报 URL，跳过")
+
+    return None
 
 def try_fetch_city_price(city_name: str, url: str) -> dict:
     """尝试从城市政府网站获取价格数据"""
@@ -390,7 +555,7 @@ def collect_all() -> dict:
     }
 
     # 1. 上海（主要数据源）
-    print("[1/3] 抓取上海发改委价格数据...")
+    print("[1/4] 抓取上海发改委价格数据...")
     shanghai_page_url = get_shanghai_latest_page()
     if shanghai_page_url:
         print(f"  找到最新页面: {shanghai_page_url}")
@@ -403,7 +568,7 @@ def collect_all() -> dict:
         print("  [WARN] 无法获取上海价格页面")
 
     # 2. 36城数据
-    print("[2/3] 抓取36城价格信息...")
+    print("[2/4] 抓取36城价格信息...")
     pages = get_36city_price_pages()
     if pages:
         for page_url in pages[:2]:  # 蔬菜 + 肉禽蛋
@@ -415,11 +580,20 @@ def collect_all() -> dict:
     else:
         print("  [WARN] 36城数据页面获取失败")
 
-    # 3. 尝试郴州/长沙/衡阳
-    print("[3/3] 尝试获取其他城市数据...")
-    # 如果有各地价格页面URL，可以在这里添加
-    # 示例: try_fetch_city_price("郴州", "https://xxx/czsgov/price.html")
-    # 目前郴州/长沙/衡阳暂无稳定的公开价格数据URL，先跳过
+    # 3. 郴州（商务局周报）
+    print("[3/4] 抓取郴州市商务局周报...")
+    cz_data = fetch_chenzhou_price()
+    if cz_data:
+        all_data["cities"]["郴州"] = cz_data
+        print(f"  提取到 {len(cz_data['items'])} 项商品价格")
+        if cz_data.get("note"):
+            print(f"  备注: {cz_data['note']}")
+    else:
+        print("  [WARN] 郴州数据获取失败，跳过")
+
+    # 4. 其他城市（长沙/衡阳暂无公开数据源）
+    print("[4/4] 其他城市...")
+    # 长沙/衡阳目前无稳定的政府公开价格数据URL，暂跳过
 
     return all_data
 
@@ -459,6 +633,27 @@ def generate_summary(data: dict) -> str:
                     unit = item.get("unit", "")
                     p_range = item.get("price_range", "")
                     lines.append(f"- **{name}**：{price} {unit} {f'（区间 {p_range}）' if p_range else ''}")
+
+    # 郴州摘要
+    cz = data.get("cities", {}).get("郴州", {})
+    if cz.get("items"):
+        lines.append("\n## 郴州 · 生活必需品周报均价")
+        lines.append("")
+        by_cat = {}
+        for item in cz.get("items", []):
+            cat = item.get("category", "其他")
+            by_cat.setdefault(cat, []).append(item)
+        for cat in ["蔬菜", "水产品", "肉禽蛋", "水果", "粮食", "食用油"]:
+            if cat in by_cat:
+                lines.append(f"\n### {cat}")
+                for item in by_cat[cat]:
+                    name = item.get("name", "")
+                    price = item.get("price", "—")
+                    unit = item.get("unit", "")
+                    lines.append(f"- **{name}**：{price} {unit}")
+        if cz.get("note"):
+            lines.append("")
+            lines.append(f"> {cz['note']}")
 
         if sh.get("note"):
             lines.append("")
