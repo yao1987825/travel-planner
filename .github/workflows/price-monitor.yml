@@ -8,6 +8,7 @@ on:
   push:
     paths:
       - "scripts/food_price_scraper.py"
+      - "scripts/discover_chenzhou_url.py"
 
 jobs:
   scrape-and-update:
