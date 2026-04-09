@@ -8,7 +8,6 @@ on:
   push:
     paths:
       - "scripts/food_price_scraper.py"
-      - "scripts/discover_chenzhou_url.py"
 
 jobs:
   scrape-and-update:
@@ -30,14 +29,8 @@ jobs:
         run: |
           pip install xlrd==1.2.0 requests
 
-      - name: Discover latest 郴州 report URL
-        id: discover
-        run: python scripts/discover_chenzhou_url.py
-
       - name: Run scraper
         run: python scripts/food_price_scraper.py
-        env:
-          CHENZHOU_REPORT_URL: ${{ env.CHENZHOU_REPORT_URL }}
 
       - name: Check for changes
         id: changed

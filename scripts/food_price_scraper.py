@@ -368,30 +368,49 @@ def parse_36city_page(url: str) -> list:
 
 def get_chenzhou_report_url() -> Optional[str]:
     """
-    通过 web search API 查找郴州市最新周报 URL。
-    返回类似: https://cif.mofcom.gov.cn/cif/html/market_scanner/2026/3/xxxx.html
+    查找郴州市最新周报 URL，依次尝试：
+      1. 环境变量 CHENZHOU_REPORT_URL（workflow 可预传）
+      2. Bing 搜索（curl 方式）
+      3. 已知历史 ID 递增尝试
     """
-    import requests as req
+    # 1. 环境变量优先
+    env_url = os.environ.get("CHENZHOU_REPORT_URL", "").strip()
+    if env_url:
+        print(f"  [郴州] 使用环境变量指定 URL: {env_url}")
+        return env_url
 
+    # 2. Bing 搜索（curl 绕过 SSL）
+    print("  [郴州] 通过 Bing 搜索最新周报 URL...")
     search_url = (
         "https://www.bing.com/search?q="
-        "site%3Acif.mofcom.gov.cn+%E9%83%BD%E5%B7%9E+%E7%94%9F%E6%B4%BB%E5%BF%85%E9%9C%80%E5%93%81+%E6%83%85%E5%86%B5%E5%88%86%E6%9E%90+2026"
+        "site%3Acif.mofcom.gov.cn+%E9%83%BD%E5%B7%9E+%E7%94%9F%E6%B4%BB%E5%BF%85%E9%9C%81%E5%93%81+%E6%83%85%E5%86%B5%E5%88%86%E6%9E%90+2026"
     )
-    try:
-        r = req.get(search_url, headers=HEADERS, timeout=15, verify=False)
-        if r.status_code == 200:
-            # 提取 cif.mofcom.gov.cn 的 market_scanner 链接
-            matches = re.findall(
-                r'href="(https?://cif\.mofcom\.gov\.cn/cif/html/market_scanner/\d+/\d+/\d+\.html)"',
-                r.text
-            )
-            if matches:
-                return matches[0]
-    except Exception as e:
-        print(f"  [WARN] Bing search failed: {e}")
+    html = fetch_curl(search_url, timeout=15)
+    if html:
+        matches = re.findall(
+            r'href="(https?://cif\.mofcom\.gov\.cn/cif/html/market_scanner/\d+/\d+/\d+\.html)"',
+            html
+        )
+        if matches:
+            print(f"  [郴州] Bing 找到: {matches[0]}")
+            return matches[0]
 
-    # Fallback: 使用已知最新 URL（手动更新此处）
+    # 3. 已知历史 ID 递增尝试（近 8 周）
+    # 已知：第 10 周(03/03~03/09) ID=13153，每周约+26
+    print("  [郴州] 尝试已知历史 ID 递增搜索...")
+    base_id = 13153
+    for offset in range(1, 9):
+        for direction in [1, -1]:
+            candidate_id = base_id + offset * 26 * direction
+            for month in ["4", "3", "2"]:
+                test_url = f"https://cif.mofcom.gov.cn/cif/html/market_scanner/2026/{month}/{candidate_id}.html"
+                html2 = fetch_curl(test_url, timeout=8)
+                if html2 and len(html2) > 500 and "郴州" in html2[:3000]:
+                    print(f"  [郴州] ID 试探找到: {test_url}")
+                    return test_url
+
     return None
+
 
 
 def parse_chenzhou_report(html: str) -> dict:
