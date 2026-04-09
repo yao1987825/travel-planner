@@ -4,7 +4,7 @@ description: >
   个性化旅游攻略自动规划 Skill。根据用户具体情况（天数、预算、偏好、体力、出发日期），
   自动生成每日行程安排，输出景点间高德地图导航路线（含驾车/公交/步行）、
   目的地天气预报（实时+未来3天+生活指数），并可选生成旅游系统数据库 SQL、
-  RESTful API 定义、FastAPI 后端代码骨架。支持郴州、长沙、衡阳、上海四城（含美食价格手册）
+  RESTful API 定义、FastAPI 后端代码骨架。支持郴州、长沙、衡阳、上海、清远五城（含美食价格手册）
 read-when: >
   旅游攻略、旅游计划、出行规划、行程安排、景点推荐、必去景点、
   省钱旅游、自由行攻略、几日游、怎么安排、哪些值得去、哪些可以跳过、
@@ -35,7 +35,7 @@ metadata: >
 
 ## 二、支持城市
 
-郴州、长沙、衡阳、上海（含周边联游）
+郴州、长沙、衡阳、上海、清远（含周边联游）
 
 ---
 
@@ -242,8 +242,10 @@ GET https://restapi.amap.com/v3/direction/walking
 
 | 文件 | 内容 |
 |------|------|
-| `references/cities_attractions.md` | 郴州/长沙/衡阳/上海四城景点数据库（含门票、时长、省钱等级） |
-| `references/food_guide.md` | 四城美食价格手册（必吃小吃、推荐店铺、日均预算、省钱攻略） |
+| `references/cities_attractions.md` | 五城景点数据库（含门票、时长、省钱等级） |
+| `references/food_guide.md` | 五城美食价格手册（必吃小吃、推荐店铺、日均预算、省钱攻略） |
+| `references/xiaohongshu_qingyuan.md` | 小红书清远旅游推荐合集（17篇，涵盖漂流/溶洞/民族文化/美食） |
+| `references/xiaohongshu_all_cities.md` | **五城**小红书推荐合集（88篇，各城市10+篇，含景点/美食/避坑） |
 | `references/money_saving.md` | 全链路省钱攻略（预算分配、时间规划、门票/餐饮/住宿/交通） |
 | `references/travel_schema.md` | 数据库表结构（5张表 + 索引 + 示例数据） |
 | `references/travel_api.md` | RESTful API 接口定义（6个端点 + 错误码） |
