@@ -1,22 +1,22 @@
 {
-  "updated_at": "2026-10-26T03:21:47.737773",
+  "updated_at": "2026-10-27T03:49:38.602420",
   "cities": {
     "上海": {
       "city": "上海",
-      "date": "2026-10-26",
+      "date": "2026-10-27",
       "source": "上海市发展和改革委员会 (fgw.sh.gov.cn)",
       "items": [
         {
           "category": "肉禽蛋",
           "name": "猪精瘦肉",
-          "price": "17.37",
+          "price": "17.35",
           "unit": "元/500克",
           "trend": ""
         },
         {
           "category": "肉禽蛋",
           "name": "鸡蛋",
-          "price": "5.71",
+          "price": "5.69",
           "unit": "元/500克",
           "trend": ""
         },
@@ -32,7 +32,7 @@
         {
           "category": "食用油",
           "name": "花生油(鲁花)",
-          "price": 151.72,
+          "price": 151.84,
           "unit": "元/5升",
           "sample_count": 43,
           "price_range": "65.0~184.0",
@@ -41,7 +41,7 @@
         {
           "category": "食用油",
           "name": "大豆油",
-          "price": 53.23,
+          "price": 53.36,
           "unit": "元/5升",
           "sample_count": 39,
           "price_range": "44.0~75.0",
@@ -50,7 +50,7 @@
         {
           "category": "鱼虾",
           "name": "带鱼",
-          "price": 29.72,
+          "price": 29.74,
           "unit": "元/500克",
           "sample_count": 45,
           "price_range": "21.0~46.0",
@@ -59,7 +59,7 @@
         {
           "category": "鱼虾",
           "name": "黄鱼",
-          "price": 30.61,
+          "price": 30.56,
           "unit": "元/500克",
           "sample_count": 38,
           "price_range": "19.8~43.0",
@@ -68,16 +68,16 @@
         {
           "category": "鱼虾",
           "name": "草鱼",
-          "price": 11.76,
+          "price": 11.7,
           "unit": "元/500克",
           "sample_count": 44,
-          "price_range": "8.0~17.0",
+          "price_range": "8.0~15.8",
           "trend": ""
         },
         {
           "category": "鱼虾",
           "name": "鲫鱼",
-          "price": 14.64,
+          "price": 14.66,
           "unit": "元/500克",
           "sample_count": 49,
           "price_range": "9.0~20.0",
@@ -86,7 +86,7 @@
         {
           "category": "鱼虾",
           "name": "基围虾",
-          "price": 26.01,
+          "price": 25.97,
           "unit": "元/500克",
           "sample_count": 48,
           "price_range": "20.0~39.8",
@@ -95,16 +95,16 @@
         {
           "category": "蔬菜",
           "name": "青菜",
-          "price": 3.14,
+          "price": 3.08,
           "unit": "元/500克",
           "sample_count": 56,
-          "price_range": "1.0~6.0",
+          "price_range": "0.7~6.0",
           "trend": ""
         },
         {
           "category": "蔬菜",
           "name": "鸡毛菜",
-          "price": 4.34,
+          "price": 4.29,
           "unit": "元/500克",
           "sample_count": 52,
           "price_range": "1.5~6.6",
@@ -113,7 +113,7 @@
         {
           "category": "蔬菜",
           "name": "黄瓜",
-          "price": 3.87,
+          "price": 3.88,
           "unit": "元/500克",
           "sample_count": 59,
           "price_range": "1.0~7.0",
@@ -131,14 +131,14 @@
         {
           "category": "蔬菜",
           "name": "土豆",
-          "price": 2.55,
+          "price": 2.57,
           "unit": "元/500克",
           "sample_count": 60,
           "price_range": "1.2~4.0",
           "trend": ""
         }
       ],
-      "note": "2026年10月26日本市主要蔬菜品种平均零售价环比上一工作日6涨24跌4平。其中，青菜和鸡毛菜平均零售价3.14元/500克和4.34元/500克，环比下跌-3.7%和-1.6%。 &emsp;&emsp;今日，主要肉禽蛋品种平均零售价环比上一工作日3涨5跌1平。其中，猪精瘦肉价格17.37元/500克，鸡蛋价格5.71元/500克，环比上涨0.1%和0.2%。"
+      "note": "2026年10月27日本市主要蔬菜品种平均零售价环比上一工作日10涨16跌8平。其中，青菜和鸡毛菜平均零售价3.08元/500克和4.29元/500克，环比下跌-1.9%和-1.2%。 &emsp;&emsp;今日，主要肉禽蛋品种平均零售价环比上一工作日3涨5跌1平。其中，猪精瘦肉价格17.35元/500克，鸡蛋价格5.69元/500克，环比下跌-0.1%和-0.4%。"
     }
   }
 }

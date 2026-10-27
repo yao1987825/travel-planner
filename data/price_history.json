@@ -1,142 +1,5 @@
 [
   {
-    "date": "2026-07-29",
-    "city": "上海",
-    "items": [
-      {
-        "category": "肉禽蛋",
-        "name": "猪精瘦肉",
-        "price": "16.87",
-        "unit": "元/500克",
-        "trend": ""
-      },
-      {
-        "category": "肉禽蛋",
-        "name": "鸡蛋",
-        "price": "5.73",
-        "unit": "元/500克",
-        "trend": ""
-      },
-      {
-        "category": "粮食",
-        "name": "粳米",
-        "price": 2.82,
-        "unit": "元/500克",
-        "sample_count": 51,
-        "price_range": "2.3~3.7",
-        "trend": ""
-      },
-      {
-        "category": "食用油",
-        "name": "花生油(鲁花)",
-        "price": 152.98,
-        "unit": "元/5升",
-        "sample_count": 42,
-        "price_range": "65.0~184.0",
-        "trend": ""
-      },
-      {
-        "category": "食用油",
-        "name": "大豆油",
-        "price": 53.91,
-        "unit": "元/5升",
-        "sample_count": 35,
-        "price_range": "46.0~69.0",
-        "trend": ""
-      },
-      {
-        "category": "鱼虾",
-        "name": "带鱼",
-        "price": 30.79,
-        "unit": "元/500克",
-        "sample_count": 46,
-        "price_range": "15.0~52.5",
-        "trend": ""
-      },
-      {
-        "category": "鱼虾",
-        "name": "黄鱼",
-        "price": 30.83,
-        "unit": "元/500克",
-        "sample_count": 44,
-        "price_range": "18.5~45.0",
-        "trend": ""
-      },
-      {
-        "category": "鱼虾",
-        "name": "草鱼",
-        "price": 11.77,
-        "unit": "元/500克",
-        "sample_count": 44,
-        "price_range": "9.9~15.0",
-        "trend": ""
-      },
-      {
-        "category": "鱼虾",
-        "name": "鲫鱼",
-        "price": 14.85,
-        "unit": "元/500克",
-        "sample_count": 50,
-        "price_range": "9.0~20.0",
-        "trend": ""
-      },
-      {
-        "category": "鱼虾",
-        "name": "基围虾",
-        "price": 24.28,
-        "unit": "元/500克",
-        "sample_count": 45,
-        "price_range": "19.0~39.9",
-        "trend": ""
-      },
-      {
-        "category": "蔬菜",
-        "name": "青菜",
-        "price": 3.17,
-        "unit": "元/500克",
-        "sample_count": 57,
-        "price_range": "1.0~7.0",
-        "trend": ""
-      },
-      {
-        "category": "蔬菜",
-        "name": "鸡毛菜",
-        "price": 4.25,
-        "unit": "元/500克",
-        "sample_count": 52,
-        "price_range": "2.0~6.6",
-        "trend": ""
-      },
-      {
-        "category": "蔬菜",
-        "name": "黄瓜",
-        "price": 4.32,
-        "unit": "元/500克",
-        "sample_count": 60,
-        "price_range": "1.3~6.5",
-        "trend": ""
-      },
-      {
-        "category": "蔬菜",
-        "name": "西红柿",
-        "price": 4.12,
-        "unit": "元/500克",
-        "sample_count": 61,
-        "price_range": "2.3~7.5",
-        "trend": ""
-      },
-      {
-        "category": "蔬菜",
-        "name": "土豆",
-        "price": 2.59,
-        "unit": "元/500克",
-        "sample_count": 61,
-        "price_range": "1.5~4.0",
-        "trend": ""
-      }
-    ]
-  },
-  {
     "date": "2026-07-30",
     "city": "上海",
     "items": [
@@ -12205,6 +12068,143 @@
         "category": "蔬菜",
         "name": "土豆",
         "price": 2.55,
+        "unit": "元/500克",
+        "sample_count": 60,
+        "price_range": "1.2~4.0",
+        "trend": ""
+      }
+    ]
+  },
+  {
+    "date": "2026-10-27",
+    "city": "上海",
+    "items": [
+      {
+        "category": "肉禽蛋",
+        "name": "猪精瘦肉",
+        "price": "17.35",
+        "unit": "元/500克",
+        "trend": ""
+      },
+      {
+        "category": "肉禽蛋",
+        "name": "鸡蛋",
+        "price": "5.69",
+        "unit": "元/500克",
+        "trend": ""
+      },
+      {
+        "category": "粮食",
+        "name": "粳米",
+        "price": 2.79,
+        "unit": "元/500克",
+        "sample_count": 49,
+        "price_range": "2.3~3.8",
+        "trend": ""
+      },
+      {
+        "category": "食用油",
+        "name": "花生油(鲁花)",
+        "price": 151.84,
+        "unit": "元/5升",
+        "sample_count": 43,
+        "price_range": "65.0~184.0",
+        "trend": ""
+      },
+      {
+        "category": "食用油",
+        "name": "大豆油",
+        "price": 53.36,
+        "unit": "元/5升",
+        "sample_count": 39,
+        "price_range": "44.0~75.0",
+        "trend": ""
+      },
+      {
+        "category": "鱼虾",
+        "name": "带鱼",
+        "price": 29.74,
+        "unit": "元/500克",
+        "sample_count": 45,
+        "price_range": "21.0~46.0",
+        "trend": ""
+      },
+      {
+        "category": "鱼虾",
+        "name": "黄鱼",
+        "price": 30.56,
+        "unit": "元/500克",
+        "sample_count": 38,
+        "price_range": "19.8~43.0",
+        "trend": ""
+      },
+      {
+        "category": "鱼虾",
+        "name": "草鱼",
+        "price": 11.7,
+        "unit": "元/500克",
+        "sample_count": 44,
+        "price_range": "8.0~15.8",
+        "trend": ""
+      },
+      {
+        "category": "鱼虾",
+        "name": "鲫鱼",
+        "price": 14.66,
+        "unit": "元/500克",
+        "sample_count": 49,
+        "price_range": "9.0~20.0",
+        "trend": ""
+      },
+      {
+        "category": "鱼虾",
+        "name": "基围虾",
+        "price": 25.97,
+        "unit": "元/500克",
+        "sample_count": 48,
+        "price_range": "20.0~39.8",
+        "trend": ""
+      },
+      {
+        "category": "蔬菜",
+        "name": "青菜",
+        "price": 3.08,
+        "unit": "元/500克",
+        "sample_count": 56,
+        "price_range": "0.7~6.0",
+        "trend": ""
+      },
+      {
+        "category": "蔬菜",
+        "name": "鸡毛菜",
+        "price": 4.29,
+        "unit": "元/500克",
+        "sample_count": 52,
+        "price_range": "1.5~6.6",
+        "trend": ""
+      },
+      {
+        "category": "蔬菜",
+        "name": "黄瓜",
+        "price": 3.88,
+        "unit": "元/500克",
+        "sample_count": 59,
+        "price_range": "1.0~7.0",
+        "trend": ""
+      },
+      {
+        "category": "蔬菜",
+        "name": "西红柿",
+        "price": 4.33,
+        "unit": "元/500克",
+        "sample_count": 60,
+        "price_range": "1.5~7.0",
+        "trend": ""
+      },
+      {
+        "category": "蔬菜",
+        "name": "土豆",
+        "price": 2.57,
         "unit": "元/500克",
         "sample_count": 60,
         "price_range": "1.2~4.0",
