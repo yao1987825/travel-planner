@@ -237,7 +237,16 @@ class TravelPlanner:
         self.prefer_free = profile.get("options", {}).get("prefer_free", False)
         self.include_disney = profile.get("options", {}).get("include_disney", False)
 
+        # 脚本里只内置了上海的景点库; 另外四城(郴州/长沙/衡阳/清远)的景点在
+        # references/cities_attractions.md 里, 由 **AI 按技能去读** —— 这是这个项目的
+        # 设计意图(SKILL.md 写明"不执行脚本, 直接调 HTTP API")。
+        # 但命令行直接跑时会得到一份"第N天自由活动"的空行程, 很容易被误以为是 bug,
+        # 所以这里明确提示: 要景点就去读那份 md, 或者让 AI 按技能生成。
         self._attractions = SHANGHAI_ATTRACTIONS if self.city == "上海" else []
+        if not self._attractions:
+            print(f"⚠️  脚本内置景点库只有「上海」; 「{self.city}」的景点资料在:")
+            print(f"    {Path(__file__).resolve().parent.parent / 'references' / 'cities_attractions.md'}")
+            print("    (让 opencode 按 travel-planner 技能生成, 或换 --dest-city 上海 试脚本)")
 
     # ── 景点评分 ──────────────────────────────────────────────────────────────
     def _score_attraction(self, a: dict) -> float:
