@@ -82,6 +82,7 @@ class Location:
     address: Optional[str] = None
     lat: Optional[float] = None   # 纬度
     lng: Optional[float] = None   # 经度
+    city: str = ""                # 所属城市(公交路线规划要用, 地理编码时顺带取到)
 
     @property
     def coord_str(self) -> str:
@@ -140,7 +141,9 @@ class AmapClient:
         self.session = requests.Session()
         self.session.headers.update({"User-Agent": "TravelPlanner/1.0"})
 
-    def _get(self, endpoint: str, params: dict) -> dict:
+    def _get(self, endpoint: str, params: dict, quiet: bool = False) -> dict:
+        # quiet=True 用于"探测性"请求(比如带城市限定地试一次, 失败就退回不带城市),
+        # 这种失败是预期内的, 不该刷一行红字吓人
         params["key"] = self.key
         url = f"{AMAP_BASE}/{endpoint}"
         resp = self.session.get(url, params=params, timeout=10)
@@ -149,12 +152,13 @@ class AmapClient:
         if data.get("status") != "1":
             infocode = data.get("infocode", "?")
             info = data.get("info", "未知错误")
-            print(f"❌ API 错误 [{infocode}]: {info}")
+            if not quiet:
+                print(f"❌ API 错误 [{infocode}]: {info}")
             return {}
         return data
 
     # ── 地理编码 ────────────────────────────────────────────────────────────────
-    def geocode(self, address: str, city: str = "") -> Optional[Location]:
+    def geocode(self, address: str, city: str = "", quiet: bool = False) -> Optional[Location]:
         """
         将地点名称转为经纬度坐标。
         :param address: 地点名称，如 '上海外滩' 或完整地址
@@ -164,7 +168,7 @@ class AmapClient:
         params = {"address": address}
         if city:
             params["city"] = city
-        data = self._get("geocode/geo", params)
+        data = self._get("geocode/geo", params, quiet=quiet)
         if not data or data.get("count", "0") == "0":
             return None
         geom = data["geocodes"][0]
@@ -173,6 +177,7 @@ class AmapClient:
             address=geom.get("formatted_address", address),
             lng=float(geom["location"].split(",")[0]),
             lat=float(geom["location"].split(",")[1]),
+            city=geom.get("city", "") or "",
         )
 
     # ── 驾车路线 ───────────────────────────────────────────────────────────────
@@ -720,7 +725,10 @@ def main():
     parser.add_argument("--from",     dest="origin_raw", help="起点地名/地址")
     parser.add_argument("--to",       dest="dest_raw",   help="终点地名/地址")
     parser.add_argument("--mode",     default="transit", choices=["driving","transit","walking"], help="出行方式")
-    parser.add_argument("--city",     default="上海",     help="公交规划城市名")
+    # city 默认空: 原来固定是"上海", 而且被无条件套在起终点的地理编码上 ——
+    # 于是查"郴州西"会拿"上海"去找, 坐标全错, 路线接口直接报 30001。
+    # 现在: 用户显式给了 --city 才用; 公交规划缺城市时按起点的城市兜底。
+    parser.add_argument("--city",     default="",         help="公交规划城市名(默认按起点自动判断)")
     parser.add_argument("--strategy", default="0",        help="路线策略（mode=driving/transit时）")
     parser.add_argument("--plan",     help="从行程 JSON 文件读取景点列表，批量规划导航")
     parser.add_argument("--output",   help="保存结果到 JSON 文件")
@@ -751,16 +759,38 @@ def main():
 
     # 单段路线查询
     if args.origin_raw and args.dest_raw:
-        # 始终传入 city 提高地理编码准确性，避免同名地点歧义（如多地岳麓山）
-        origin = amap.geocode(args.origin_raw, args.city)
-        destination = amap.geocode(args.dest_raw, args.city)
+        # 地理编码策略(2026-10 真机实测后修的):
+        #   起点 —— 不带 city 查, 更宽容。
+        #           反例: "郴州西" 带上 city=郴州 反而报 ENGINE_RESPONSE_DATA_ERROR,
+        #           不带 city 才有结果(虽然精确到市)。
+        #   目的地 —— 用**起点的城市**限定。
+        #           反例: "岳麓山" 不带城市限定时, 高德会匹配到
+        #           "新疆乌鲁木齐市头屯河区岳麓山", 路线直接差 3800 公里。
+        #           用起点的城市限定就对了。
+        #   目的地带 city 查不到时(跨城行程, 比如郴州→衡阳), 退回不带 city 再查一次。
+        if args.city:
+            origin = amap.geocode(args.origin_raw, args.city)
+            destination = amap.geocode(args.dest_raw, args.city)
+        else:
+            origin = amap.geocode(args.origin_raw)
+            dest_city = origin.city if origin else ""
+            # 这一步是探测性的: 跨城行程(郴州->衡阳)必然查不到, 静默失败再退回
+            destination = amap.geocode(args.dest_raw, dest_city, quiet=True) if dest_city else None
+            if not destination:
+                destination = amap.geocode(args.dest_raw)
         if not origin or not destination:
+            print("❌ 地点定位失败: 换个更完整的地点名, 或用 --city 指定城市")
+            sys.exit(1)
+        # 公交路线接口必须带 city: 优先用参数, 其次用起点所属城市, 最后用终点
+        city = args.city or (origin.city if origin else "") or (destination.city if destination else "")
+        if not city:
+            print("❌ 公交路线需要城市名: 用 --city 指定(或换个能定位到城市的地点名)")
             sys.exit(1)
 
         if args.mode == "driving":
             seg = amap.driving(origin, destination, args.strategy)
         elif args.mode == "transit":
-            seg = amap.transit(origin, destination, args.city, args.strategy)
+            seg = amap.transit(origin, destination, city, args.strategy)
         else:
             seg = amap.walking(origin, destination)
 
