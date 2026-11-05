@@ -85,8 +85,17 @@ RikkaHub 的技能是**纯指令包**,没有 shell;但它的**工作区**是一�
 
 **Step 1 · 装技能**
 
-`设置 → 扩展管理 → 技能 → + → 从文件导入`,选 `travel-planner-rikkahub.zip`
-(或 `从 GitHub 导入`,粘 `https://github.com/yao1987825/travel-planner`)。
+`设置 → 扩展管理 → 技能 → +` → **从文件导入**,选 Release 里的 zip。两个版本任选:
+
+| zip | 内部结构 | 说明 |
+| --- | --- | --- |
+| `travel-planner-rikkahub.zip` | 顶层一个 `travel-planner/` 目录 | 「压缩了技能文件夹」的形态,多数客户端能认 |
+| `travel-planner-rikkahub-flat.zip` | 根目录直接是 `SKILL.md` | 解压出来就是技能目录,适合直接解压到技能目录的客户端 |
+
+导入后如果 RikkaHub 里看不到这个技能,换一个 zip 版本重来 —— 两种解压行为都覆盖到了。
+
+也可以 **从 GitHub 导入**,粘 `https://github.com/yao1987825/travel-planner`
+(仓库根目录就有 `SKILL.md`,RikkaHub 会直接读默认分支)。
 
 **Step 2 · 建工作区**
 
