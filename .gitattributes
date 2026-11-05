@@ -1,0 +1,10 @@
+# 强制 LF 行尾 —— 这套技能要被拷到 Linux 机器上跑,
+# CRLF 的 .sh 在 bash 下会报 `$'\r': command not found`。
+*.sh text eol=lf
+*.py text eol=lf
+*.md text eol=lf
+*.yml text eol=lf
+*.yaml text eol=lf
+*.json text eol=lf
+*.txt text eol=lf
+.env.example text eol=lf
