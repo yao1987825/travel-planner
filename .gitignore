@@ -1,11 +1,17 @@
-__pycache__/
-*.pyc
-*.pyo
-*.egg-info/
-.eggs/
-dist/
-build/
+# 密钥: 高德 API Key 不进仓库
 .env
-*.zip
-.git/
+
+# 注意: data/ 是**要跟踪**的 —— 每日价格监控 workflow 会更新并提交它
+
+# 编辑器 / 系统
 .DS_Store
+Thumbs.db
+*.swp
+.idea/
+.vscode/
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
