@@ -15,3 +15,6 @@ __pycache__/
 *.py[cod]
 .venv/
 venv/
+
+# 提交信息临时文件
+_commit_msg.txt
