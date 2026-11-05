@@ -72,6 +72,12 @@ def main():
     ap.add_argument("--out", default=os.path.join(ROOT, "dist"), help="输出目录(默认 ./dist)")
     args = ap.parse_args()
 
+    # Windows 控制台默认 GBK, 打印 ✓/中文会 UnicodeEncodeError —— 兜个底
+    try:
+        sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+    except Exception:
+        pass
+
     os.makedirs(args.out, exist_ok=True)
     items = collect(ROOT)
     if not items:
