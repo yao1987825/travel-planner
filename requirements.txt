@@ -1,2 +1,7 @@
+# 运行时依赖
+#
+#   - amap_nav.py 需要 requests;
+#   - generate_plan.py / food_price_scraper.py 只用 Python 标准库, 无需装包;
+#   - python-dotenv **不再需要**: 脚本自带 .env 解析器, 找技能目录下的 .env,
+#     不依赖当前工作目录, 也不依赖这个包(镜像里本来就没装)。
 requests
-python-dotenv

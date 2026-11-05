@@ -30,11 +30,35 @@ from dataclasses import dataclass, field, asdict
 from typing import Optional
 from itertools import permutations
 
-try:
-    from dotenv import load_dotenv
-    load_dotenv()
-except ImportError:
-    pass
+
+# ─── 读取 AMAP_KEY ───────────────────────────────────────────────────────────
+# 原实现依赖 python-dotenv, 但:
+#   1) 镜像里不装这个包(apt 没有);
+#   2) load_dotenv() 只找**当前目录**的 .env, 从别的目录跑脚本就找不到 key。
+# 所以这里自己解析 .env: 先找脚本所在目录(技能目录), 再找当前目录。
+def _load_env_file(paths):
+    for p in paths:
+        try:
+            with open(p, "r", encoding="utf-8") as fh:
+                for line in fh:
+                    line = line.strip()
+                    if not line or line.startswith("#") or "=" not in line:
+                        continue
+                    k, _, v = line.partition("=")
+                    k = k.strip()
+                    v = v.strip().strip('"').strip("'")
+                    if k and v and k not in os.environ:
+                        os.environ[k] = v
+        except OSError:
+            continue
+
+
+_HERE = os.path.dirname(os.path.abspath(__file__))
+_load_env_file([
+    os.path.join(_HERE, "..", ".env"),
+    os.path.join(_HERE, ".env"),
+    ".env",
+])
 
 try:
     import requests
