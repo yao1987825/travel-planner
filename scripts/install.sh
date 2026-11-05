@@ -53,6 +53,7 @@ fi
 
 if [[ -d "${TARGET}/scripts" ]]; then
   find "${TARGET}/scripts" -type f -name '*.sh' -exec chmod +x {} + 2>/dev/null || true
+  chmod +x "${TARGET}/scripts/bus_query.py" 2>/dev/null || true
 fi
 
 cat <<EOF
@@ -64,5 +65,6 @@ cat <<EOF
   2. 重启 opencode(或新开一个会话), 让它重新扫描技能目录
   3. 体检:  bash ${TARGET}/scripts/preflight.sh
   4. 试一把: travel weather 郴州
+              python3 ${TARGET}/scripts/bus_query.py live 郴州 2路 --to 湘南幼专
 
 EOF

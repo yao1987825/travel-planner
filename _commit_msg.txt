@@ -1,0 +1,27 @@
+feat(skill): 并入公交实时查询, 合成一个完整的出行技能
+
+原 bus-activity 技能和 travel-planner 技能各管一半, 出行时要在两个技能之间跳。
+现在合成一个: 行程规划 / 高德导航 / 天气 / 12306 火车票 + 公交实时, 一个技能全管。
+
+新增(原 rikkahub-bus-activity 技能的代码搬过来)
+- scripts/bus_query.py: 公交查询统一入口(纯标准库)
+  lines/live/station/route/scan/cities 六个子命令, 自动选源、城市归一化、
+  方向按站序判定、--to 自动取到站预测
+- references/bus_api.md: 掌上公交 + 车来了的完整接口说明(按实测整理)
+- references/mygolbs_cities.json: 掌上公交 579 城离线缓存
+- references/bus_cities.json: 车来了城市 ID(320 城)
+- references/districts.json: 区县 -> 地级市映射
+- LICENSE
+
+改造
+- SKILL.md 重写成两大部分: 公交实时查询 / 旅游行程规划,
+  共享城市归一化、参考文件索引、典型对话与汇报规范
+- preflight.sh 合并成一套体检: Python/requests、高德 Key、掌上公交与车来了
+  连通性、公交脚本端到端、脚本与参考资料完整性、默认城市覆盖
+- install.sh 一并安装 bus_query.py
+- README 重写: 三个配套命令(travel/train/bus)、合并后的文件结构、踩过的坑
+
+注意
+- 车来了的城市 ID 文件改名 bus_cities.json(原 cities.json), 避免和旅游侧的
+  参考资料混淆; bus_query.py 里的引用同步改了
+- 原来的 rikkahub-bus-activity 仓库保留作历史, 但技能本体以本仓库为准
