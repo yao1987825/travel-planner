@@ -47,12 +47,20 @@ KEY=""
 if [[ -f "${SKILL_DIR}/.env" ]]; then
   KEY="$(sed -n 's/^AMAP_KEY=//p' "${SKILL_DIR}/.env" | tail -1 | tr -d '"'"'"' \r')"
 fi
+# 环境变量也算 —— 工作区里可能用 export 而不是 .env
+if [[ -z "${KEY}" ]]; then
+  KEY="${AMAP_KEY:-}"
+fi
 if [[ -n "${KEY}" && "$KEY" != *"在这里填"* ]]; then
-  ok "AMAP_KEY 已配置 (${SKILL_DIR}/.env)"
+  if [[ -f "${SKILL_DIR}/.env" ]]; then
+    ok "AMAP_KEY 已配置 (${SKILL_DIR}/.env)"
+  else
+    ok "AMAP_KEY 来自环境变量"
+  fi
 elif [[ -f "${SKILL_DIR}/.env" ]]; then
   bad "AMAP_KEY 还是模板值 —— 改 ${SKILL_DIR}/.env, 申请: https://lbs.amap.com/dev/key/app"
 else
-  bad "没有 ${SKILL_DIR}/.env —— cp .env.example .env 然后填 AMAP_KEY"
+  bad "没有 AMAP_KEY —— 改 ${SKILL_DIR}/.env 或 export AMAP_KEY=..., 申请: https://lbs.amap.com/dev/key/app"
 fi
 
 echo

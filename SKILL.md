@@ -1,11 +1,23 @@
 ---
 name: travel-planner
-description: 旅游攻略与出行规划 + 公交实时查询 —— 按天数/预算/偏好生成每日行程、景点间高德地图导航路线(驾车/公交/步行)、目的地实时天气与未来3天预报、美食价格手册与省钱攻略、12306 火车票余票, 以及全国公交实时信息(某条线路车在哪、还有几站、几分钟到、某站有哪几路、起终点直达线路)。配套 `travel` / `train` / `bus` 命令。Use when the user asks 旅游攻略、旅游计划、出行规划、行程安排、景点推荐、省钱旅游、几日游、景点之间怎么走、公交/驾车路线、高德地图导航、查天气/天气预报/穿衣建议、火车票/余票/12306, 或问公交:几路车/有没有车/到哪了/还有几站/几分钟到/某站有哪几路/坐什么车/末班车/公交到站.
+description: 旅游攻略与出行规划 + 公交实时查询 —— 按天数/预算/偏好生成每日行程、景点间高德地图导航路线(驾车/公交/步行)、目的地实时天气与未来3天预报、美食价格手册与省钱攻略、12306 火车票余票, 以及全国公交实时信息(某条线路车在哪、还有几站、几分钟到、某站有哪几路、起终点直达线路)。Use when the user asks 旅游攻略、旅游计划、出行规划、行程安排、景点推荐、省钱旅游、几日游、景点之间怎么走、公交/驾车路线、高德地图导航、查天气/天气预报/穿衣建议、火车票/余票/12306, 或问公交:几路车/有没有车/到哪了/还有几站/几分钟到/某站有哪几路/坐什么车/末班车/公交到站.
+compatibility: "查实时公交需要能执行命令的环境(工具箱 U 盘,或 RikkaHub 工作区)。纯对话模式下仍可做行程规划、景点与美食推荐(读 references/),但查不了实时公交/天气/火车票。"
 ---
 
 # 出行助手:旅游规划 + 公交实时
 
-这台机器是 Omarchy 便携工具箱 U 盘,出行这块有三个命令:
+出行这件事分两块:**行程怎么安排**(去哪儿、吃什么、怎么走、天气如何),
+和**到了当地怎么坐车**(几路车还有几分钟到)。这个技能两块都管。
+
+---
+
+## 0. 先判断你在哪个环境
+
+两套环境,命令不同 —— **先确认,别瞎试**。
+
+### 环境 A:工具箱 U 盘 / opencode(有 bash)
+
+命令直接可用:
 
 | 命令 | 干什么 |
 | --- | --- |
@@ -13,20 +25,46 @@ description: 旅游攻略与出行规划 + 公交实时查询 —— 按天数/�
 | `train` | 12306 火车票余票 |
 | `bus` | 公交实时车辆 / 到站预测 / 站点线路 / 直达线路 |
 
-> **支持城市**: 郴州、长沙、衡阳、上海、清远(含周边联游)
-> **AMAP_KEY** 已经配在**本技能目录下的 `.env`** 里,脚本会自己读,不用手动 export。
-> 要换成自己的 key,改那个文件即可(申请: https://lbs.amap.com/dev/key/app )。
-> **默认城市**(公交查询不写城市时): 郴州市。
+> `AMAP_KEY` 已经配在技能目录的 `.env` 里(`~/.config/opencode/skills/travel-planner/.env`),
+> 脚本自己读,不用手动 export。
+
+### 环境 B:RikkaHub / 手机工作区(只有 proot Linux)
+
+工作区里没有 `bus`/`travel` 命令,但有 shell、python3 和网络 —— **跑同一个脚本**。
+
+第一次用(或工作区是空的)先装:
+
+```bash
+# 1. 装依赖(工作区默认 apt;没装 git/python3 就装)
+apt update && apt install -y git python3 python3-pip
+
+# 2. 拉技能仓库(把 REPO 换成实际仓库地址)
+git clone --depth 1 https://github.com/yao1987825/travel-planner.git
+
+# 3. 高德 Key: 申请 https://lbs.amap.com/dev/key/app ,然后写进仓库根目录的 .env
+echo 'AMAP_KEY=你的key' > travel-planner/.env
+
+# 4. 自检
+python3 travel-planner/scripts/bus_query.py lines 郴州 --limit 3
+```
+
+之后一律用:
+
+```bash
+python3 travel-planner/scripts/bus_query.py <子命令> [参数...]
+```
+
+> `bus_query.py` **只用 Python 标准库**, 不需要 pip 装任何东西。
+> `amap_nav.py`(高德路线/天气)需要 `requests`:
+> `pip install requests`。
+> 没有工作区、也没有 shell 的纯聊天环境:见第 9 节「没有运行环境时能做什么」。
 
 ---
 
-# 第一部分:公交实时查询
+## 1. 公交实时查询
 
-## 1. 四种查询
-
-```bash
-S=~/.config/opencode/skills/travel-planner/scripts/bus_query.py
-```
+环境 A 用 `bus`,环境 B 用 `python3 .../bus_query.py` —— **子命令和参数完全一样**。
+下面统一写成 `bus`,环境 B 把它换成 `python3 <仓库路径>/scripts/bus_query.py`。
 
 | 用户说的 | 查法 | 命令 |
 | --- | --- | --- |
@@ -39,10 +77,7 @@ S=~/.config/opencode/skills/travel-planner/scripts/bus_query.py
 
 通用参数: `--src mygolbs|chelaile` 强制数据源, `--json` 输出原始 JSON, `--limit N` 限制条数。
 
-> 镜像里 `bus` 就是这个脚本的顶层入口; 手边没有 `bus` 命令时直接
-> `python3 ~/.config/opencode/skills/travel-planner/scripts/bus_query.py <子命令>`。
-
-## 2. 标准作业流程
+### 标准作业流程
 
 **第 1 步:识别城市** —— 脚本自己归一化:
 
@@ -54,7 +89,7 @@ S=~/.config/opencode/skills/travel-planner/scripts/bus_query.py
 覆盖范围:掌上公交 **579** 城/县(`references/mygolbs_cities.json` 离线缓存),
 车来了 **320** 城(`references/bus_cities.json` 有城市 ID)。
 
-**第 2 步:识别查询类型,选命令** —— 对照上面的表。**不确定就问用户**。
+**第 2 步:识别查询类型** —— 对照上表。**不确定就问用户**。
 
 **第 3 步:执行** —— `bus live 郴州 2路 --to 湘南幼专`
 
@@ -67,7 +102,7 @@ S=~/.config/opencode/skills/travel-planner/scripts/bus_query.py
 - 没查到就**照实说没查到**, 不要编线路和车辆
 - 「坐过去几分钟」是按里程/均速估算的, 说「约」
 
-## 3. 到站预测怎么来的(知道原理才不会用错)
+### 到站预测怎么来的(知道原理才不会用错)
 
 掌上公交要**两跳**才能拿到"还有几站/几分钟":
 
@@ -81,7 +116,7 @@ S=~/.config/opencode/skills/travel-planner/scripts/bus_query.py
 - 同一条线两个方向都有这个站时, 脚本默认选方向 1; 可以用 `--dir 2` 强制
 - 每站最多给最近 2 辆车的预测
 
-## 4. 公交部分的注意事项
+### 公交部分的注意事项
 
 1. **一次查询只用一家数据源**:两家站名写法不一致,不合并站表。
    脚本默认掌上公交优先,掌上公交没覆盖的城市才退车来了。
@@ -98,9 +133,9 @@ S=~/.config/opencode/skills/travel-planner/scripts/bus_query.py
 
 ---
 
-# 第二部分:旅游行程规划
+## 2. 行程规划
 
-## 5. 信息收集(先问清楚再规划)
+### 信息收集(先问清楚再规划)
 
 | 字段 | 说明 | 默认值 |
 | --- | --- | --- |
@@ -119,13 +154,19 @@ S=~/.config/opencode/skills/travel-planner/scripts/bus_query.py
 
 **缺的信息先问,别替用户假设**。只有天数和城市是硬性必需的,其他有合理默认值。
 
-## 6. 四种能力,怎么调
-
 ### 生成行程
+
+环境 A:
 
 ```bash
 travel plan                                   # 交互式
 travel plan --profile /tmp/profile.json --output /tmp/trip
+```
+
+环境 B(工作区):
+
+```bash
+python3 travel-planner/scripts/generate_plan.py --profile profile.json --output ./trip
 ```
 
 `profile.json` 形状:
@@ -159,6 +200,8 @@ travel nav --from A --to B --mode driving --city 长沙  # 公交查询指定城
 travel route --plan /tmp/trip/travel_plan.json          # 按行程批量规划
 ```
 
+工作区里换成 `python3 travel-planner/scripts/amap_nav.py --from ... --to ... --mode ...`。
+
 | `--mode` | 取值 |
 | --- | --- |
 | `driving` | 驾车(`--strategy 0` 速度优先 / `2` 距离优先) |
@@ -185,7 +228,9 @@ travel price
 采集五城食品价格,写到技能目录的 `data/`:`latest_prices.json`(明细)、
 `latest_summary.md`(人话摘要)、`price_history.json`(历史,保留 90 天)。
 
-## 7. 火车票(12306)
+---
+
+## 3. 火车票(12306)
 
 ```bash
 train 北京 上海                # 今天
@@ -200,12 +245,14 @@ train --stations 北京          # 查车站名/车站码
 - 预售期一般只到**今天起 15 天内**,超了会直接报错;
 - **余票随时变**,要买票必须去 12306 官网/App 确认 —— 汇报时一定要带上这句。
 
-## 8. 直接调高德 API(需要精确控制时)
+---
+
+## 4. 直接调高德 API(需要精确控制时)
 
 `travel` 命令覆盖不到的组合,直接打 API。key 从技能目录的 `.env` 读:
 
 ```bash
-KEY=$(sed -n 's/^AMAP_KEY=//p' ~/.config/opencode/skills/travel-planner/.env | tail -1 | tr -d '"'"'"' \r')
+KEY=$(sed -n 's/^AMAP_KEY=//p' travel-planner/.env | tail -1 | tr -d '"'"'"' \r')
 ```
 
 | 用途 | 接口 |
@@ -227,7 +274,14 @@ KEY=$(sed -n 's/^AMAP_KEY=//p' ~/.config/opencode/skills/travel-planner/.env | t
 `forecasts[0].casts[].dayweather` / `daytemp` / `nighttemp`,
 `forecasts[0].index[].iname` / `detail`(生活指数)。免费配额:个人开发者每日 5000 次。
 
-## 9. 规划逻辑(脚本内部就是这么算的)
+> ⚠️ **手机上直接用 HTTP 工具查不了掌上公交**:它要求请求头里带
+> `Origin: https://h5.mygolbs.com`(不带就回 47 字节占位串),
+> 车来了也要求 `Referer`(不带回 status=400)。
+> 所以在 RikkaHub 里**必须用工作区的脚本跑**,别用普通网页抓取工具。
+
+---
+
+## 5. 规划逻辑(脚本内部就是这么算的)
 
 ### 景点评分
 
@@ -255,56 +309,23 @@ KEY=$(sed -n 's/^AMAP_KEY=//p' ~/.config/opencode/skills/travel-planner/.env | t
 - 迪士尼/全天景点**单独安排**,不占用碎片时间;
 - 餐饮按 4321 法则分配:住宿 30% / 门票 25% / 餐饮 25% / 交通 10% / 备用 10%。
 
-## 10. 五城景点省钱速查
+---
 
-### 郴州
+## 6. 五城景点省钱速查
 
-| 景点 | 门票 | 类别 |
+| 城市 | 免费/低价亮点 | 必去(付费) |
 | --- | --- | --- |
-| 东江湖 | ¥85 | 必去·自然 |
-| 高椅岭 | ¥95 | 必去·丹霞 |
-| 万华岩 | ¥47 | ⭐省钱·溶洞 |
-| 板梁古村 | ¥35 | ⭐省钱·古村 |
-| 苏仙岭 | **免费** | ⭐省钱·城市 |
-| 裕后街 | **免费** | ⭐省钱·美食 |
-| 白廊公路 | **免费** | ⭐省钱·拍照 |
+| **郴州** | 苏仙岭、裕后街、白廊公路 | 东江湖 ¥85 / 高椅岭 ¥95 / 万华岩 ¥47 / 板梁古村 ¥35 |
+| **长沙** | 橘子洲头、岳麓山、太平老街、湖南省博物馆(需预约) | 岳麓书院 ¥40 |
+| **衡阳** | 石鼓书院、酃湖公园、保卫里、回雁峰、东洲岛 | 南岳衡山 ¥80 |
+| **上海** | 外滩、武康路、田子坊、新天地、上海博物馆(需预约) | 豫园 ¥40 |
 
-### 长沙
-
-| 景点 | 门票 | 类别 |
-| --- | --- | --- |
-| 橘子洲头 | **免费** | 必去·地标 |
-| 岳麓山 | **免费** | 必去·山地 |
-| 湖南省博物馆 | **免费**(需预约) | 必去·历史 |
-| 太平老街 | **免费** | 必去·美食 |
-| 岳麓书院 | ¥40 | 经典·文化 |
-| 文和友 | **免费入场** | 网红打卡 |
-
-### 衡阳
-
-| 景点 | 门票 | 类别 |
-| --- | --- | --- |
-| 南岳衡山 | ¥80(中心景区) | 必去·名山 |
-| 石鼓书院 | **免费** | 必去·历史 |
-| 酃湖公园 | **免费** | ⭐省钱·城市公园 |
-| 保卫里 | **免费** | ⭐省钱·文艺老街 |
-| 回雁峰 | **免费** | ⭐省钱·城市公园 |
-| 东洲岛 | **免费** | ⭐省钱·江心岛 |
-
-### 上海
-
-| 景点 | 门票 | 类别 |
-| --- | --- | --- |
-| 外滩 | **免费** | 必去·夜景 |
-| 武康路 | **免费** | 必去·网红 |
-| 田子坊 | **免费** | 必去·文艺 |
-| 新天地 | **免费** | 必去·时尚 |
-| 上海博物馆 | **免费**(需预约) | 必去·历史 |
-| 豫园 | ¥40 | 经典·园林 |
+> 完整景点库(门票、时长、省钱等级)见 `references/cities_attractions.md`;
+> 美食手册见 `references/food_guide.md`。
 
 ---
 
-# 参考文件索引
+## 7. 参考文件索引
 
 | 文件 | 内容 |
 | --- | --- |
@@ -323,20 +344,20 @@ KEY=$(sed -n 's/^AMAP_KEY=//p' ~/.config/opencode/skills/travel-planner/.env | t
 | `scripts/generate_plan.py` | 行程规划器 |
 | `scripts/amap_nav.py` | 高德客户端(路线 + 天气) |
 | `scripts/food_price_scraper.py` | 美食价格采集 |
-| `scripts/bus_query.py` | 公交查询(纯标准库,不含加密依赖) |
-| `scripts/preflight.sh` | 环境体检(高德 Key + 公交接口 + 依赖) |
+| `scripts/bus_query.py` | 公交查询(纯标准库,自带 AES 解密) |
+| `scripts/preflight.sh` | 环境体检(依赖 / Key / 接口连通性) |
+| `scripts/setup_workspace.sh` | 工作区一键安装与自检 |
 
 ---
 
-# 典型对话
+## 8. 典型对话
 
 **用户**: 我想去郴州玩3天,预算2500,带家人,主要看自然风光。
 → 1) 识别: dest_city=郴州, days=3, budget=2500, group_type=family, styles=[自然]
 → 2) 补问: 出发日期、孩子年龄(影响每天景点数)
-→ 3) 从 `references/cities_attractions.md` 筛郴州景点,按评分 + 体力约束排序
+→ 3) 读 `references/cities_attractions.md` 筛郴州景点,按评分 + 体力约束排序
 → 4) 组合: 东江湖(¥85)+高椅岭(¥95)+免费景点,3 日门票 ≤ ¥300
-→ 5) 要天气就 `travel weather 郴州`
-→ 6) 要知道怎么去火车站 → `bus route 郴州 五岭广场 火车站`
+→ 5) 要天气就查天气 API; 要知道怎么去火车站 → `bus route 郴州 五岭广场 火车站`
 
 **用户**: 明天从郴州坐火车去衡阳,还有票吗?到了怎么坐车去南岳?
 → 1) `train 郴州 衡阳 明天` → 汇报车次、余票,提醒以 12306 为准
@@ -344,7 +365,7 @@ KEY=$(sed -n 's/^AMAP_KEY=//p' ~/.config/opencode/skills/travel-planner/.env | t
 
 **用户**: 2路到湘南幼专还有几分钟?
 → 1) `bus live 郴州 2路 --to 湘南幼专`
-→ 2) 报:最近一辆 车湘LA1608,小于1分钟/即将到站/距150米;下一辆 7分钟/4站
+→ 2) 报:最近一辆 车湘LA8317,小于1分钟/即将到站/距150米;下一辆 7分钟/4站
 → 3) 提醒实时数据会变
 
 **用户**: 从橘子洲头到岳麓山怎么走最划算?
@@ -353,13 +374,28 @@ KEY=$(sed -n 's/^AMAP_KEY=//p' ~/.config/opencode/skills/travel-planner/.env | t
 → 3) 返回:公交方案(含地铁换乘、耗时、费用)
 
 **用户**: 出发去郴州前,帮我看看那边天气怎么样?
-→ 1) `travel weather 郴州`
+→ 1) 查天气 API(`extensions=all`)
 → 2) 实时 + 3 天预报 + 穿衣/紫外线/舒适度
 → 3) 根据预报给行程微调建议(暴雨天改期高椅岭)
 
 ---
 
-# 汇报给用户时
+## 9. 没有运行环境时能做什么
+
+纯聊天环境(没 bash、没工作区)也能用这个技能的一大半:
+
+- ✅ **行程规划**:读 `references/cities_attractions.md` + `food_guide.md` + `money_saving.md`,
+  按第 5 节的评分/体力/预算规则自己排行程
+- ✅ **景点与美食推荐**、省钱建议、小红书攻略摘要
+- ✅ **解释性问答**(怎么坐公交、看懂站牌、怎么读高德接口)
+- ❌ **查不了**:实时公交、到站预测、实时天气、火车票余票、精确路线
+  —— 这些必须联网调接口,而且掌上公交/车来了都要求特定请求头,只能用脚本跑
+
+查不到就直说"这个需要联网接口",别用记忆里的旧数据冒充实时结果。
+
+---
+
+## 10. 汇报给用户时
 
 - 行程要给**按天分组**的清单,每项带**时间段 + 门票 + 大概耗时**;
 - 被排除的景点要说明**为什么**(时间不够 / 超出预算 / 太远),别让用户以为漏了;
@@ -371,9 +407,9 @@ KEY=$(sed -n 's/^AMAP_KEY=//p' ~/.config/opencode/skills/travel-planner/.env | t
 
 ---
 
-# 边界
+## 11. 边界
 
 - 本技能只做**直达**公交查询与行程规划,**不做换乘规划**;
 - 公交与天气数据都来自第三方源,**覆盖范围和实时性取决于对方**,不是官方承诺;
-- 只查公交不做路线规划(跨城路线是 `travel nav` 的活);
+- 只查公交不做路线规划(跨城路线是高德 API 的活);
 - 请低频、善意使用接口。

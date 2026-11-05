@@ -48,6 +48,8 @@ bus route 郴州 五岭广场 火车站                          # 直达线路(
 
 ## 安装
 
+### A. 工具箱 U 盘 / opencode(有 bash)
+
 ```bash
 git clone https://github.com/yao1987825/travel-planner.git
 cd travel-planner
@@ -72,8 +74,44 @@ cp .env.example .env
 bash scripts/preflight.sh
 ```
 
-会逐项检查 Python 依赖、高德 Key、公交两个数据源连通性、脚本与参考资料完整性,
-并顺带测一次默认城市覆盖。
+### B. RikkaHub(安卓)—— 技能 + 工作区
+
+RikkaHub 的技能是**纯指令包**,没有 shell;但它的**工作区**是一个 proot Linux 环境,
+有 shell、python3 和网络。两者配合才能跑实时查询。
+
+> ⚠️ **手机上不能直接用 HTTP 工具查公交**:
+> 掌上公交要求请求头带 `Origin: https://h5.mygolbs.com`(不带就回 47 字节占位串),
+> 车来了要求 `Referer`(不带回 status=400)。所以必须用工作区里的脚本跑。
+
+**Step 1 · 装技能**
+
+`设置 → 扩展管理 → 技能 → + → 从文件导入`,选 `travel-planner-rikkahub.zip`
+(或 `从 GitHub 导入`,粘 `https://github.com/yao1987825/travel-planner`)。
+
+**Step 2 · 建工作区**
+
+`设置 → 扩展管理 → 工作区 → +` 新建 → 点进去 → **安装 Rootfs** → 切到「文件」标签看目录。
+
+**Step 3 · 在工作区里装技能本体**
+
+聊天页点 `+` → 选工作区卡片 → 绑定,然后直接跟助手说:
+
+> 克隆 https://github.com/yao1987825/travel-planner.git,然后按它的 scripts/setup_workspace.sh 装好,再帮我查一下郴州 2 路到湘南幼专还有几分钟
+
+或者自己在工作区终端里跑:
+
+```bash
+bash setup_workspace.sh
+```
+
+它会:装 python3/git → clone 仓库 → 检查高德 Key → 跑一次公交自检。
+
+**Step 4 · 给助手启用技能**
+
+长按助手 → 编辑 → 找到「已启用技能」→ 打开 **travel-planner** 开关。
+
+> 高德 Key 在工作区里是个人密钥:写进 `travel-planner/.env`(别提交到公开仓库),
+> 或 `export AMAP_KEY=...`。
 
 ### 其它用法
 
@@ -81,6 +119,16 @@ bash scripts/preflight.sh
 - **其它认 SKILL.md 的客户端**:把仓库根目录(含 `SKILL.md`、`references/`、`scripts/`)拷进它的技能目录即可;
 - **直接跑脚本**:`pip install -r requirements.txt`,然后
   `python3 scripts/amap_nav.py --weather 郴州`。
+
+### 重新打包 RikkaHub zip
+
+改完技能后:
+
+```bash
+python3 scripts/package_rikkahub.py
+```
+
+会在 `dist/` 下生成两个 zip(含目录版 + 扁平版),并自动排除 `.env` 和 `data/`。
 
 ## 文件结构
 

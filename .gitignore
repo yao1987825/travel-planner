@@ -18,3 +18,6 @@ venv/
 
 # 提交信息临时文件
 _commit_msg.txt
+
+# 打包产物: zip 走 GitHub Release 发, 不进仓库
+dist/
