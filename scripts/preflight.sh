@@ -1,9 +1,8 @@
 #!/usr/bin/env bash
 #
-# preflight.sh —— 出行功能环境体检(旅行规划 + 公交实时)
+# preflight.sh —— 出行功能环境体检(行程规划 / 公交实时 / 地铁 / 天气 / 火车票)
 #
-# 检查: python3 / requests、高德 Key、公交两个数据源通不通、
-#       技能脚本齐不齐、参考数据齐不齐、默认城市有没有覆盖。
+# 检查: python3、四个数据源通不通、技能脚本齐不齐、参考数据齐不齐、默认城市有没有覆盖。
 # 每一项不过, 都给可以直接抄的修复命令。
 #
 # 用法:
@@ -35,37 +34,13 @@ if command -v python3 >/dev/null 2>&1; then
 else
   bad "没有 python3 —— 修: sudo pacman -S --needed python python-pip"
 fi
-if python3 -c 'import requests' 2>/dev/null; then
-  ok "requests 已装(高德导航与天气要用)"
-else
-  bad "requests 没装 —— 修: sudo pacman -S --needed python python-pip && pip install requests"
-fi
+# 本技能的所有脚本都是纯标准库, 不需要 pip 装任何东西
+python3 -c 'import json,urllib.request,html.parser' 2>/dev/null \
+  && ok "标准库齐全(全部脚本零第三方依赖)" \
+  || bad "python3 标准库不完整 —— 换个官方 python 装"
 
 echo
-echo "== 2. 高德 Key(行程规划/导航/天气) =="
-KEY=""
-if [[ -f "${SKILL_DIR}/.env" ]]; then
-  KEY="$(sed -n 's/^AMAP_KEY=//p' "${SKILL_DIR}/.env" | tail -1 | tr -d '"'"'"' \r')"
-fi
-# 环境变量也算 —— 工作区里可能用 export 而不是 .env
-if [[ -z "${KEY}" ]]; then
-  KEY="${AMAP_KEY:-}"
-fi
-if [[ -n "${KEY}" && "$KEY" != *"在这里填"* ]]; then
-  if [[ -f "${SKILL_DIR}/.env" ]]; then
-    ok "AMAP_KEY 已配置 (${SKILL_DIR}/.env)"
-  else
-    ok "AMAP_KEY 来自环境变量"
-  fi
-elif [[ -f "${SKILL_DIR}/.env" ]]; then
-  bad "AMAP_KEY 还是模板值 —— 改 ${SKILL_DIR}/.env, 申请: https://lbs.amap.com/dev/key/app"
-else
-  bad "没有 AMAP_KEY —— 改 ${SKILL_DIR}/.env 或 export AMAP_KEY=..., 申请: https://lbs.amap.com/dev/key/app"
-fi
-
-echo
-echo "== 3. 公交数据源 =="
-# 掌上公交: Origin 头错了会回 47 字节占位串, 所以要检查长度
+echo "== 2. 公交数据源 =="
 if command -v curl >/dev/null 2>&1; then
   _n="$(curl -s --max-time 12 \
         -H 'Origin: https://h5.mygolbs.com' \
@@ -84,7 +59,7 @@ else
   warn "没有 curl, 跳过连通性测试"
 fi
 
-if [[ -x "${HERE}/bus_query.py" || -f "${HERE}/bus_query.py" ]]; then
+if [[ -f "${HERE}/bus_query.py" ]]; then
   _t="$(timeout 30 python3 "${HERE}/bus_query.py" lines 郴州 --limit 1 2>&1)"
   if printf '%s' "$_t" | grep -q '线路方向数'; then
     ok "公交查询脚本端到端可用"
@@ -97,25 +72,84 @@ else
 fi
 
 echo
-echo "== 4. 技能脚本 =="
-for f in generate_plan.py amap_nav.py food_price_scraper.py bus_query.py; do
+echo "== 3. 地铁数据源(地铁通 metroman.cn) =="
+if [[ -f "${HERE}/metro_query.py" ]]; then
+  _t="$(timeout 60 python3 "${HERE}/metro_query.py" station 上海 徐家汇 2>&1)"
+  if printf '%s' "$_t" | grep -q '首末班车\|途经线路'; then
+    ok "地铁查询脚本端到端可用"
+  else
+    warn "地铁查询脚本跑不出结果(见下面):"
+    printf '%s\n' "$_t" | sed 's/^/      /' | head -5
+  fi
+else
+  bad "缺少 scripts/metro_query.py —— 重新安装本技能"
+fi
+
+echo
+echo "== 4. 天气数据源(中国天气网 weather.com.cn) =="
+if [[ -f "${HERE}/weather_query.py" ]]; then
+  _t="$(timeout 40 python3 "${HERE}/weather_query.py" live 郴州 2>&1)"
+  if printf '%s' "$_t" | grep -q '实况天气'; then
+    ok "天气查询脚本端到端可用"
+  else
+    warn "天气查询脚本跑不出结果(见下面):"
+    printf '%s\n' "$_t" | sed 's/^/      /' | head -5
+  fi
+else
+  bad "缺少 scripts/weather_query.py —— 重新安装本技能"
+fi
+
+echo
+echo "== 5. 火车票(12306) =="
+if [[ -f "${HERE}/train_store.py" ]]; then
+  _t="$(timeout 40 python3 -c "
+import sys; sys.path.insert(0, '${HERE}')
+import train_store
+m = train_store._load_station_cache()
+print('车站表', len(m), '个')
+" 2>&1)"
+  if printf '%s' "$_t" | grep -q '车站表'; then
+    ok "12306 车站表就绪(${_t})"
+  else
+    warn "12306 车站表没读到(见下面):"
+    printf '%s\n' "$_t" | sed 's/^/      /' | head -3
+  fi
+else
+  bad "缺少 scripts/train_store.py —— 重新安装本技能"
+fi
+
+echo
+echo "== 6. 技能脚本 =="
+for f in generate_plan.py food_price_scraper.py bus_query.py metro_query.py weather_query.py transit.py train_store.py; do
   if [[ -f "${SKILL_DIR}/scripts/${f}" ]]; then
     ok "scripts/${f}"
   else
     bad "scripts/${f} 缺失 —— 重新安装本技能"
   fi
 done
+if [[ -d "${SKILL_DIR}/scripts/metroman" ]]; then
+  ok "scripts/metroman/ (地铁数据层)"
+else
+  bad "scripts/metroman/ 缺失 —— 重新安装本技能"
+fi
 
 echo
-echo "== 5. 参考资料 =="
-for f in cities_attractions.md food_guide.md money_saving.md amap_api.md bus_api.md; do
+echo "== 7. 参考资料 =="
+for f in cities_attractions.md food_guide.md money_saving.md bus_api.md; do
   if [[ -f "${SKILL_DIR}/references/${f}" ]]; then
     ok "references/${f}"
   else
     bad "references/${f} 缺失 —— 重新安装本技能"
   fi
 done
-for f in mygolbs_cities.json bus_cities.json districts.json; do
+for f in transit_link.md metro_api.md weather_api.md; do
+  if [[ -f "${SKILL_DIR}/references/${f}" ]]; then
+    ok "references/${f}"
+  else
+    warn "references/${f} 缺失(新版本文档, 不影响功能)"
+  fi
+done
+for f in mygolbs_cities.json bus_cities.json districts.json weather_cities.json; do
   if [[ -f "${SKILL_DIR}/references/${f}" ]]; then
     ok "references/${f}"
   else
@@ -124,7 +158,7 @@ for f in mygolbs_cities.json bus_cities.json districts.json; do
 done
 
 echo
-echo "== 6. 默认城市 =="
+echo "== 8. 默认城市 =="
 if [[ -f "${HERE}/bus_query.py" ]] && command -v python3 >/dev/null 2>&1; then
   _c="$(python3 -c "
 import importlib.util

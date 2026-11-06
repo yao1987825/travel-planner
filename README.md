@@ -1,36 +1,58 @@
-# travel-planner —— 出行助手 Skill(旅游规划 + 公交实时)
+# travel-planner —— 出行助手 Skill（行程规划 + 公共交通 + 天气）
 
-把「出行」这件事封装成一个 AI 技能。模型加载后就知道该敲哪条命令、参数怎么传、
+把「出行」这件事封装成一个 AI 技能：模型加载后就知道该敲哪条命令、参数怎么传、
 返回里哪些字段能直接用、哪些坑要避开。
 
-> 技能名 `travel-planner`;仓库名 `travel-planner`。
+> 技能名 `travel-planner`；仓库名 `travel-planner`。
+> **零第三方依赖、零 API Key** —— 装好 python3 就能跑。
+
+## 核心思路
+
+一次出行不是四个互不相干的功能，而是**一条由若干段组成的旅程**：
+
+```
+出发地 ──[火车/高铁]──→ 到达站 ──[地铁/公交]──→ 目的地 ──[步行]──→ 景点
+                            ↑                    ↑
+                    首班/末班车卡点        天气、预警、票价
+```
+
+所以主入口是 **`transit.py journey`**：它把 12306 火车票、55 城地铁换乘、579 城公交实时、
+中国天气网天气预警**串成一条带时刻的时间线**，并做跨方式校验（换乘缓冲、末班车卡点、天气预警）。
 
 ## 功能特性
 
-- 🗺️ **景点规划**:内置景点库(评分/门票/标签/建议游玩时长),自动生成每日行程
-- 🍽️ **美食推荐**:内置五城美食价格手册(必吃小吃、推荐店铺、日均预算)
-- 🧭 **高德导航**:每日景点间驾车/公交/步行路线,含 ETA 和距离
-- 🌤️ **天气预报**:实时天气 + 未来3天 + 穿衣/紫外线/舒适度等生活指数
-- 🚄 **火车票**:12306 余票查询(标准库实现,零第三方依赖)
-- 🚌 **公交实时**:线路实时车辆、**到站预测(还有几站/几分钟)**、站点线路、
-  起终点直达线路(按站序判方向)、全城扫 —— 覆盖掌上公交 579 城/县 + 车来了 320 城
-- 📊 **多预算支持**:穷游 / 舒适 / 轻奢三档预算推荐
-- 📱 **小红书攻略**:内置 88 篇五城小红书热门推荐,含景点/美食/避坑指南
+- 🧭 **整段出行编排**: 火车 + 地铁 + 公交 + 天气 拼成一条时间线，支持 `--arrive-by` 反推
+- 🚄 **火车票**: 12306 余票/时刻/席别（标准库实现）
+- 🚇 **地铁换乘**: 55 城，逐站时刻、换乘次数、票价、**各方向首末班车时刻表**（地铁通 metroman.cn）
+- 🚌 **公交实时**: 线路实时车辆、**到站预测（还有几站/几分钟）**、站点线路、直达线路、全城扫
+- 🌤️ **天气**: 实况 + AQI + **生活指数（穿衣/旅游/运动/紫外线…）** + 气象预警 + 7 天预报 + 逐小时（中国天气网）
+- 🗺️ **景点规划**: 内置景点库（评分/门票/标签/游玩时长），自动生成每日行程
+- 🍽️ **美食推荐**: 内置五城美食价格手册
+- 📊 **多预算支持**: 穷游 / 舒适 / 轻奢
+- 📱 **小红书攻略**: 内置 88 篇五城热门推荐，含避坑
 
 ## 配套命令
 
 | 命令 | 干什么 |
 | --- | --- |
-| `travel` | 旅游攻略 / 行程规划 / 高德导航 / 天气 / 美食价格 |
-| `train` | 12306 火车票余票 |
+| `journey` | **整段出行时间线**（火车+地铁+公交+天气） |
+| `metro` | 地铁换乘 / 线路站点 / 车站首末班车 |
 | `bus` | 公交实时车辆 / 到站预测 / 站点线路 / 直达线路 |
+| `train` | 12306 火车票余票 |
+| `travel` | 旅游攻略 / 行程规划 / 美食价格 |
 
 ```bash
-travel plan --profile profile.json --output ./trip   # 生成行程
-travel weather 郴州                                    # 实时+3天天气+生活指数
-train 郴州 衡阳 明天                                    # 火车票
-bus live 郴州 2路 --to 湘南幼专                         # 公交到站预测
-bus route 郴州 五岭广场 火车站                          # 直达线路(带方向站数)
+# 整段出行（跨城）
+python3 scripts/transit.py journey --from 郴州西 --to 陆家嘴 --date 明天 --weather
+
+# 市内地铁
+python3 scripts/metro_query.py plan 上海 徐家汇 陆家嘴
+
+# 公交到站预测
+python3 scripts/bus_query.py live 郴州 2路 --to 湘南幼专
+
+# 天气
+python3 scripts/weather_query.py live 郴州
 ```
 
 ## 支持城市
@@ -43,12 +65,12 @@ bus route 郴州 五岭广场 火车站                          # 直达线路(
 | 上海 | 13个 | 外滩、豫园、迪士尼、朱家角、武康路 |
 | 清远 | 12个 | 古龙峡漂流、连州地下河、千年瑶寨、英西峰林 |
 
-> 美食手册另含广州数据(早茶/粤菜/肠粉等)
-> 公交查询覆盖全国(掌上公交 579 城/县 + 车来了 320 城),默认城市郴州市。
+> 美食手册另含广州数据（早茶/粤菜/肠粉等）
+> **地铁**覆盖 55 城；**公交**覆盖全国（掌上公交 579 城/县 + 车来了 320 城），默认城市郴州市。
 
 ## 安装
 
-### A. 工具箱 U 盘 / opencode(有 bash)
+### A. 工具箱 U 盘 / opencode（bash 环境）
 
 ```bash
 git clone https://github.com/yao1987825/travel-planner.git
@@ -56,46 +78,38 @@ cd travel-planner
 bash scripts/install.sh
 ```
 
-装到 `~/.config/opencode/skills/travel-planner/`,重启 opencode 后即可被自动发现。
-镜像里已预装的话重装是安全的 —— `.env` 和 `data/` 不会被覆盖。
+装到 `~/.config/opencode/skills/travel-planner/`，重启 opencode 后即可被自动发现。
+镜像里已预装的话重装是安全的 —— `data/` 不会被覆盖。
 
-高德 Key 放在技能目录的 `.env` 里:
-
-```bash
-cp .env.example .env
-# 编辑 .env, 把 AMAP_KEY 填上
-```
-
-申请地址: https://lbs.amap.com/dev/key/app (免费,个人开发者每日 5000 次)
-
-体检:
+体检：
 
 ```bash
 bash scripts/preflight.sh
 ```
 
-### B. RikkaHub(安卓)—— 技能 + 工作区
+> **不需要申请任何 API Key**（原来的高德 Key 已随高德服务一起移除）。
+> 也不需要 `pip install` —— 全部脚本零第三方依赖。
 
-RikkaHub 的技能是**纯指令包**,没有 shell;但它的**工作区**是一个 proot Linux 环境,
+### B. RikkaHub（安卓）—— 技能 + 工作区
+
+RikkaHub 的技能是**纯指令包**，没有 shell；但它的**工作区**是一个 proot Linux 环境，
 有 shell、python3 和网络。两者配合才能跑实时查询。
 
-> ⚠️ **手机上不能直接用 HTTP 工具查公交**:
-> 掌上公交要求请求头带 `Origin: https://h5.mygolbs.com`(不带就回 47 字节占位串),
-> 车来了要求 `Referer`(不带回 status=400)。所以必须用工作区里的脚本跑。
+> ⚠️ **手机上不能直接用 HTTP 工具查公交**：
+> 掌上公交要求请求头带 `Origin: https://h5.mygolbs.com`（不带就回 47 字节占位串），
+> 车来了要求 `Referer`（不带回 status=400）。所以必须用工作区里的脚本跑。
 
 **Step 1 · 装技能**
 
-`设置 → 扩展管理 → 技能 → +` → **从文件导入**,选 Release 里的 zip。两个版本任选:
+`设置 → 扩展管理 → 技能 → +` → **从文件导入**，选 Release 里的 zip。两个版本任选：
 
 | zip | 内部结构 | 说明 |
 | --- | --- | --- |
-| `travel-planner-rikkahub.zip` | 顶层一个 `travel-planner/` 目录 | 「压缩了技能文件夹」的形态,多数客户端能认 |
-| `travel-planner-rikkahub-flat.zip` | 根目录直接是 `SKILL.md` | 解压出来就是技能目录,适合直接解压到技能目录的客户端 |
+| `travel-planner-rikkahub.zip` | 顶层一个 `travel-planner/` 目录 | 「压缩了技能文件夹」的形态，多数客户端能认 |
+| `travel-planner-rikkahub-flat.zip` | 根目录直接是 `SKILL.md` | 解压出来就是技能目录，适合直接解压到技能目录的客户端 |
 
-导入后如果 RikkaHub 里看不到这个技能,换一个 zip 版本重来 —— 两种解压行为都覆盖到了。
-
-也可以 **从 GitHub 导入**,粘 `https://github.com/yao1987825/travel-planner`
-(仓库根目录就有 `SKILL.md`,RikkaHub 会直接读默认分支)。
+也可以 **从 GitHub 导入**，粘 `https://github.com/yao1987825/travel-planner`
+（仓库根目录就有 `SKILL.md`）。
 
 **Step 2 · 建工作区**
 
@@ -103,91 +117,65 @@ RikkaHub 的技能是**纯指令包**,没有 shell;但它的**工作区**是一�
 
 **Step 3 · 在工作区里装技能本体**
 
-聊天页点 `+` → 选工作区卡片 → 绑定,然后直接跟助手说:
+聊天页点 `+` → 选工作区卡片 → 绑定，然后直接跟助手说：
 
-> 克隆 https://github.com/yao1987825/travel-planner.git,然后按它的 scripts/setup_workspace.sh 装好,再帮我查一下郴州 2 路到湘南幼专还有几分钟
+> 克隆 https://github.com/yao1987825/travel-planner.git，按 scripts/setup_workspace.sh 装好，
+> 再帮我查一下郴州 2 路到湘南幼专还有几分钟，我明天坐高铁去上海，能赶上吗
 
-或者自己在工作区终端里跑:
+或者自己在工作区终端里跑：
 
 ```bash
 bash setup_workspace.sh
 ```
 
-它会:装 python3/git → clone 仓库 → 检查高德 Key → 跑一次公交自检。
-
 **Step 4 · 给助手启用技能**
 
 长按助手 → 编辑 → 找到「已启用技能」→ 打开 **travel-planner** 开关。
 
-> 高德 Key 在工作区里是个人密钥:写进 `travel-planner/.env`(别提交到公开仓库),
-> 或 `export AMAP_KEY=...`。
-
-### 其它用法
-
-- **Dify**:把本仓库打包成 zip,用 mini_claw 插件安装;
-- **其它认 SKILL.md 的客户端**:把仓库根目录(含 `SKILL.md`、`references/`、`scripts/`)拷进它的技能目录即可;
-- **直接跑脚本**:`pip install -r requirements.txt`,然后
-  `python3 scripts/amap_nav.py --weather 郴州`。
-
-### 重新打包 RikkaHub zip
-
-改完技能后:
-
-```bash
-python3 scripts/package_rikkahub.py
-```
-
-会在 `dist/` 下生成两个 zip(含目录版 + 扁平版),并自动排除 `.env` 和 `data/`。
-
-## 文件结构
+## 目录结构
 
 ```
 travel-planner/
-├── SKILL.md                      # 技能定义文件(模型主要读这个)
-├── .env.example                  # 高德 Key 模板(真实 .env 不进仓库)
-├── requirements.txt              # Python 依赖(实际只有 requests)
+├── SKILL.md                    # 技能主文件（出行主线）
 ├── scripts/
-│   ├── generate_plan.py          # 核心规划逻辑(景点评分 + 行程生成)
-│   ├── amap_nav.py               # 高德地图 API 封装(地理编码 + 路线 + 天气)
-│   ├── food_price_scraper.py     # 美食价格采集
-│   ├── bus_query.py              # 公交实时查询(纯标准库)
-│   ├── preflight.sh              # 环境体检
-│   └── install.sh                # 安装到 opencode 技能目录
-└── references/
-    ├── cities_attractions.md     # 城市景点详细资料
-    ├── food_guide.md             # 美食价格手册(早餐/正餐/夜宵/老字号)
-    ├── money_saving.md           # 省钱攻略
-    ├── travel_api.md             # 天气 API 文档
-    ├── travel_schema.md          # 输出数据格式定义
-    ├── amap_api.md               # 高德 API 文档
-    ├── bus_api.md                # 公交接口文档(掌上公交 + 车来了)
-    ├── mygolbs_cities.json       # 掌上公交 579 城(离线缓存)
-    ├── bus_cities.json           # 车来了城市 ID(320 城)
-    ├── districts.json            # 区县 → 地级市映射
-    ├── xiaohongshu_qingyuan.md   # 小红书清远攻略(17篇)
-    └── xiaohongshu_all_cities.md # 小红书五城合集(88篇)
+│   ├── transit.py              # ★ 跨方式出行编排（主入口）
+│   ├── metro_query.py          # 地铁查询
+│   ├── metroman/               #   地铁数据层（纯标准库）
+│   ├── weather_query.py        # 天气（中国天气网）
+│   ├── bus_query.py            # 公交实时（掌上公交 + 车来了）
+│   ├── train_store.py          # 12306 火车票
+│   ├── generate_plan.py        # 行程规划
+│   ├── food_price_scraper.py   # 美食价格采集
+│   ├── install.sh / preflight.sh / setup_workspace.sh / package_rikkahub.py
+├── references/
+│   ├── transit_link.md         # ★ 多方式联动规则
+│   ├── metro_api.md            # 地铁接口逆向
+│   ├── weather_api.md          # 天气接口逆向
+│   ├── bus_api.md              # 公交接口说明
+│   ├── cities_attractions.md / food_guide.md / money_saving.md
+│   └── weather_cities.json     # 城市码（3137 个城市/区县）
+└── data/                       # 运行时采集的价格数据（价格监控 workflow 会更新）
 ```
 
-## 踩过的坑(都修在脚本里了)
+## 数据来源与逆向
 
-| 坑 | 说明 |
-| --- | --- |
-| 掌上公交 Origin 头 | 必须 `https://h5.mygolbs.com`(无尾斜杠),错了回 47 字节占位串,症状是「永远查不到」 |
-| 到站预测要两跳 | 先 `CMD=103` 拿站序,再用站序请求 `CMD=104` 的 `STATIONORDER` |
-| 车来了的密钥不是 hex | `422556...` 是 UTF-8 字符串字节(32 字节 → AES-256),按 hex 解成 AES-128 会解出乱码 |
-| `CMD=102` 没有 `data` 键 | 站点结果在 `busstations[]` 里 |
-| 车来了线路名不带「路」 | 掌上公交是 `2路`,车来了是 `2` |
-| `list[].index` 不是站序 | 只覆盖有车的站且不连续,算站数要用 `stationOrder` |
-| `status` 有时是数字 | 比较时统一按字符串 |
+| 能力 | 来源 | 方式 |
+|------|------|------|
+| 地铁 | 地铁通 metroman.cn（55 城） | 服务端渲染页面 + 页面内嵌 JSON，解析提取 |
+| 天气 | 中国天气网 weather.com.cn | `d1.weather.com.cn` 的 JSONP 接口 |
+| 火车票 | 12306 | 官方公开查询接口 |
+| 公交 | 掌上公交 + 车来了 | 私有接口（含 AES 解密） |
+| 景点/美食 | 本地参考库 | 静态数据 |
 
-## 数据源与免责
+逆向细节见 `references/metro_api.md`、`references/weather_api.md`、`references/bus_api.md`。
 
-- 高德地图开放平台: https://lbs.amap.com/ (Web 服务 Key,免费额度每日 5000 次)
-- 掌上公交: `https://h5.mygolbs.com` — 579 城/县,给车牌和到站预测
-- 车来了: `https://web.chelaile.net.cn` — 320 城,含港澳台与境外
-- 12306 公开接口(标准库实现,不装第三方包)
+## 注意事项
 
-覆盖范围和实时性**取决于第三方数据源**,不是官方承诺。请低频、善意使用。
+- 地铁换乘方案为**推荐时刻表**结果，不含步行、接驳、安检进站时间；
+- 火车票**只查不购**，余票随时变，以 12306 为准；
+- 公交与天气数据来自第三方源，**覆盖范围和实时性取决于对方**；
+- **驾车与精确步行路线已移除**（原高德服务下线），市内出行用地铁/公交，末段步行请用地图 App；
+- 请低频、善意使用接口。
 
 ## License
 

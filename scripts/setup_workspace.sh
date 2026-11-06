@@ -5,8 +5,9 @@
 # 干什么:
 #   1. 确认 python3 / git 在不在(不在就 apt 装 —— RikkaHub 工作区默认 apt)
 #   2. 把技能仓库 clone 到当前目录(已经在仓库里就跳过)
-#   3. 检查高德 Key(没有就提示怎么配)
-#   4. 跑一次公交查询自检 —— 确认网络和接口都通
+#   3. 跑一次公交自检 + 地铁自检 + 天气自检 —— 确认网络和接口都通
+#
+# 注意: 本技能所有脚本都是纯标准库, **不需要 pip 装任何东西, 也不需要任何 API Key**。
 #
 # 用法:
 #   bash setup_workspace.sh
@@ -68,35 +69,43 @@ else
 fi
 
 echo
-echo "== 3. 高德 Key(天气/导航需要;公交不需要) =="
-if [[ -n "${SKILL_ROOT}" && -f "${SKILL_ROOT}/.env" ]]; then
-  if grep -q '^AMAP_KEY=..' "${SKILL_ROOT}/.env" 2>/dev/null; then
-    ok ".env 里已有 AMAP_KEY"
-  else
-    warn ".env 里还没有 AMAP_KEY"
-    echo "     申请: https://lbs.amap.com/dev/key/app"
-    echo "     填写: echo 'AMAP_KEY=你的key' >> ${SKILL_ROOT}/.env"
-  fi
-else
-  warn "没有 .env —— 天气和导航会不可用(公交不受影响)"
-  echo "     申请: https://lbs.amap.com/dev/key/app"
-fi
-
-echo
-echo "== 4. 自检 =="
+echo "== 3. 自检(公交 / 地铁 / 天气 / 火车票) =="
 if [[ -n "${SKILL_ROOT}" && -f "${SKILL_ROOT}/scripts/bus_query.py" ]]; then
   _out="$(timeout 40 python3 "${SKILL_ROOT}/scripts/bus_query.py" lines 郴州 --limit 3 2>&1)"
   if printf '%s' "$_out" | grep -q '线路方向数'; then
-    ok "公交查询可用 —— $_out" | head -1
-    printf '%s\n' "$_out" | sed 's/^/     /' | head -4
+    ok "公交查询可用"
+    printf '%s\n' "$_out" | sed 's/^/     /' | head -3
   else
     bad "公交查询没跑通(通常是工作区没网):"
-    printf '%s\n' "$_out" | sed 's/^/     /' | head -5
+    printf '%s\n' "$_out" | sed 's/^/     /' | head -4
   fi
-  if python3 -c 'import requests' 2>/dev/null; then
-    ok "requests 已装(高德导航/天气可用)"
+
+  _out="$(timeout 60 python3 "${SKILL_ROOT}/scripts/metro_query.py" station 上海 徐家汇 2>&1)"
+  if printf '%s' "$_out" | grep -q '途经线路'; then
+    ok "地铁查询可用(地铁通 metroman.cn)"
   else
-    warn "requests 没装 —— pip install requests"
+    warn "地铁查询没跑通(见下面):"
+    printf '%s\n' "$_out" | sed 's/^/     /' | head -4
+  fi
+
+  _out="$(timeout 40 python3 "${SKILL_ROOT}/scripts/weather_query.py" live 郴州 2>&1)"
+  if printf '%s' "$_out" | grep -q '实况天气'; then
+    ok "天气查询可用(中国天气网)"
+  else
+    warn "天气查询没跑通(见下面):"
+    printf '%s\n' "$_out" | sed 's/^/     /' | head -4
+  fi
+
+  _out="$(timeout 40 python3 -c "
+import sys; sys.path.insert(0, '${SKILL_ROOT}/scripts')
+import train_store
+print('车站表', len(train_store._load_station_cache()), '个')
+" 2>&1)"
+  if printf '%s' "$_out" | grep -q '车站表'; then
+    ok "12306 火车票可用(${_out})"
+  else
+    warn "12306 车站表没读到(见下面):"
+    printf '%s\n' "$_out" | sed 's/^/     /' | head -3
   fi
 else
   warn "跳过自检(技能不在本地)"
@@ -105,8 +114,10 @@ fi
 echo
 cat <<EOF
 接下来:
-  查公交: python3 ${DIRNAME}/scripts/bus_query.py live 郴州 2路 --to 湘南幼专
-  查天气: python3 ${DIRNAME}/scripts/amap_nav.py --weather 郴州
-  查火车票: 工具箱上有 train 命令;工作区里没有, 用 12306 官网或第三方查
+  公交实时: python3 ${DIRNAME}/scripts/bus_query.py live 郴州 2路 --to 湘南幼专
+  地铁换乘: python3 ${DIRNAME}/scripts/metro_query.py plan 上海 徐家汇 陆家嘴
+  天气:     python3 ${DIRNAME}/scripts/weather_query.py live 郴州
+  火车票:   python3 -c "import sys;sys.path.insert(0,'${DIRNAME}/scripts');import train_store,json;print(json.dumps(train_store.train_query({'date':'明天','from_station':'郴州','to_station':'长沙'}),ensure_ascii=False)[:800])"
+  整段出行: python3 ${DIRNAME}/scripts/transit.py journey --from 郴州西 --to 陆家嘴 --date 明天 --weather
 
 EOF

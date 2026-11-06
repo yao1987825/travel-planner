@@ -5,7 +5,9 @@
 # 装完之后, opencode(以及任何认 SKILL.md 的 AI 客户端)就能按需加载这个技能。
 # 镜像里已经预装过的, 重装是安全的:
 #   SKILL.md / references / scripts 覆盖安装;
-#   .env(高德 Key)和 data/(采集数据)属于运行期数据, **不动**。
+#   data/(采集数据)属于运行期数据, **不动**。
+#
+# 本技能所有脚本都是纯标准库, **不需要 .env、不需要任何 API Key**。
 #
 # 用法:
 #   bash install.sh
@@ -37,23 +39,9 @@ if [[ -d "${HERE}/data" ]]; then
   cp -rn "${HERE}/data/." "${TARGET}/data/" 2>/dev/null || true
 fi
 
-# .env 是密钥: 目标没有才复制(仓库里只有 .env.example, 所以要靠用户自己填)
-if [[ ! -f "${TARGET}/.env" && -f "${HERE}/.env" ]]; then
-  cp "${HERE}/.env" "${TARGET}/.env"
-  chmod 600 "${TARGET}/.env"
-  echo "已复制 .env(含高德 Key)"
-fi
-if [[ ! -f "${TARGET}/.env" ]]; then
-  if [[ -f "${HERE}/.env.example" ]]; then
-    cp "${HERE}/.env.example" "${TARGET}/.env"
-    chmod 600 "${TARGET}/.env"
-    echo "已生成 ${TARGET}/.env —— 记得把 AMAP_KEY 填上"
-  fi
-fi
-
 if [[ -d "${TARGET}/scripts" ]]; then
   find "${TARGET}/scripts" -type f -name '*.sh' -exec chmod +x {} + 2>/dev/null || true
-  chmod +x "${TARGET}/scripts/bus_query.py" 2>/dev/null || true
+  find "${TARGET}/scripts" -type f -name '*.py' -exec chmod +x {} + 2>/dev/null || true
 fi
 
 cat <<EOF
@@ -61,10 +49,10 @@ cat <<EOF
 已安装: ${TARGET}
 
 下一步:
-  1. 确认高德 Key: ${TARGET}/.env  (AMAP_KEY=...)
-  2. 重启 opencode(或新开一个会话), 让它重新扫描技能目录
-  3. 体检:  bash ${TARGET}/scripts/preflight.sh
-  4. 试一把: travel weather 郴州
-              python3 ${TARGET}/scripts/bus_query.py live 郴州 2路 --to 湘南幼专
+  1. 重启 opencode(或新开一个会话), 让它重新扫描技能目录
+  2. 体检:  bash ${TARGET}/scripts/preflight.sh
+  3. 试一把: python3 ${TARGET}/scripts/metro_query.py plan 上海 徐家汇 陆家嘴
+              python3 ${TARGET}/scripts/weather_query.py live 郴州
+              python3 ${TARGET}/scripts/transit.py journey --from 郴州西 --to 陆家嘴 --date 明天
 
 EOF

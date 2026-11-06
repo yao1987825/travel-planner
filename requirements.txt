@@ -1,7 +1,12 @@
-# 运行时依赖
+# 运行时依赖: **无**
 #
-#   - amap_nav.py 需要 requests;
-#   - generate_plan.py / food_price_scraper.py 只用 Python 标准库, 无需装包;
-#   - python-dotenv **不再需要**: 脚本自带 .env 解析器, 找技能目录下的 .env,
-#     不依赖当前工作目录, 也不依赖这个包(镜像里本来就没装)。
-requests
+# 本技能的所有脚本都是纯 Python 标准库实现, 不需要 pip install 任何东西:
+#   - bus_query.py      公交实时(urllib + 自带 AES 解密)
+#   - metro_query.py    地铁换乘/时刻表(urllib + 自带迷你 HTML 解析器)
+#   - weather_query.py  天气(中国天气网 JSONP 接口)
+#   - transit.py        跨方式出行编排(火车+地铁+公交+天气)
+#   - train_store.py    12306 火车票
+#   - generate_plan.py  行程规划
+#   - food_price_scraper.py 美食价格采集
+#
+# 也**不需要任何 API Key**(原来的高德 Key 已随高德服务一起移除)。

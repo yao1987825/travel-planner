@@ -12,7 +12,6 @@ RikkaHub 的两种导入方式(设置 → 扩展管理 → 技能):
   travel-planner-rikkahub-flat.zip   根目录直接是 SKILL.md(解压即技能目录)
 
 注意:
-  - **不打包 .env** —— 高德 Key 是个人密钥, 不能进 zip
   - 不打包 data/ —— 那是运行时采集的价格数据, 几百 KB, 重新采集即可
   - 不打包 .git / .github
 
@@ -30,7 +29,7 @@ import zipfile
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SKILL_NAME = "travel-planner"
 
-INCLUDE_FILES = ["SKILL.md", "README.md", "LICENSE", "requirements.txt", ".env.example"]
+INCLUDE_FILES = ["SKILL.md", "README.md", "LICENSE", "requirements.txt"]
 INCLUDE_DIRS = ["references", "scripts"]
 SKIP_NAMES = {".git", ".github", "data", "__pycache__", ".venv", "venv", ".idea", ".vscode"}
 
