@@ -153,8 +153,9 @@ travel-planner/
 │   ├── weather_api.md          # 天气接口逆向
 │   ├── bus_api.md              # 公交接口说明
 │   ├── cities_attractions.md / food_guide.md / money_saving.md
-│   └── weather_cities.json     # 城市码（3137 个城市/区县）
-└── data/                       # 运行时采集的价格数据（价格监控 workflow 会更新）
+│   ├── weather_cities.json     # 天气城市码（3137 个城市/区县）
+│   └── station_cache.json      # 12306 车站电报码表（3407 站，随技能分发）
+└── data/                       # 运行时数据（价格监控 workflow 会更新；车站表刷新副本在此，已 gitignore）
 ```
 
 ## 数据来源与逆向

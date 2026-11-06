@@ -33,17 +33,27 @@ __all__ = ["train_query", "train_transfer_query", "main"]
 # ═══════════════════════════════════════════════════════════════════
 
 _STATION_URL = "https://kyfw.12306.cn/otn/resources/js/framework/station_name.js"
-_CACHE_FILE = Path(__file__).parent.parent / "data" / "station_cache.json"
+
+# 车站名 -> 电报码。静态表随技能分发(references/)，运行时刷新写到 data/。
+_SKILL_ROOT = Path(__file__).parent.parent
+_REFERENCE_CACHE = _SKILL_ROOT / "references" / "station_cache.json"
+_RUNTIME_CACHE = _SKILL_ROOT / "data" / "station_cache.json"
 
 _station_map: dict[str, str] | None = None
 _station_lock = threading.Lock()
 
 
 def _load_station_cache() -> dict[str, str]:
-    """从本地 JSON 缓存加载站名映射。"""
-    if _CACHE_FILE.exists():
-        with open(_CACHE_FILE, "r", encoding="utf-8") as f:
-            return json.load(f)
+    """从本地 JSON 缓存加载站名映射（先读随技能分发的静态表，再读运行时缓存）。"""
+    for path in (_REFERENCE_CACHE, _RUNTIME_CACHE):
+        if path.exists():
+            try:
+                with open(path, "r", encoding="utf-8") as f:
+                    data = json.load(f)
+                if data:
+                    return data
+            except (OSError, ValueError):
+                continue
     return {}
 
 
@@ -66,8 +76,8 @@ def _fetch_station_online() -> dict[str, str]:
                     station_map[name] = code
 
         try:
-            _CACHE_FILE.parent.mkdir(parents=True, exist_ok=True)
-            with open(_CACHE_FILE, "w", encoding="utf-8") as f:
+            _RUNTIME_CACHE.parent.mkdir(parents=True, exist_ok=True)
+            with open(_RUNTIME_CACHE, "w", encoding="utf-8") as f:
                 json.dump(station_map, f, ensure_ascii=False)
         except OSError:
             pass

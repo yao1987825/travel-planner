@@ -2,6 +2,8 @@
 .env
 
 # 注意: data/ 是**要跟踪**的 —— 每日价格监控 workflow 会更新并提交它
+# 例外: 12306 车站表的运行时刷新副本(静态表在 references/station_cache.json)
+data/station_cache.json
 
 # 编辑器 / 系统
 .DS_Store
