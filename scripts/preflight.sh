@@ -120,7 +120,7 @@ fi
 
 echo
 echo "== 6. 技能脚本 =="
-for f in generate_plan.py food_price_scraper.py bus_query.py metro_query.py weather_query.py transit.py train_store.py; do
+for f in generate_plan.py food_price_scraper.py bus_query.py metro_query.py weather_query.py transit.py train_store.py train_cli.py travel.py; do
   if [[ -f "${SKILL_DIR}/scripts/${f}" ]]; then
     ok "scripts/${f}"
   else
