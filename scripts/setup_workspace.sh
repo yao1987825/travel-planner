@@ -112,12 +112,43 @@ else
 fi
 
 echo
+# ── 命令 wrapper ─────────────────────────────────────────────────────────────
+# 让工作区里也能直接敲 travel / train / bus / metro / journey
+if [[ -z "${SKILL_ROOT}" ]]; then
+  echo "技能不在本地, 跳过 wrapper 安装"
+else
+BIN_DIR="${HOME}/.local/bin"
+mkdir -p "${BIN_DIR}"
+for name in travel train bus metro journey; do
+  case "${name}" in
+    travel)  script="travel.py";    prefix="" ;;
+    train)   script="train_cli.py"; prefix="" ;;
+    bus)     script="bus_query.py"; prefix="" ;;
+    metro)   script="metro_query.py"; prefix="" ;;
+    journey) script="transit.py";   prefix="journey" ;;
+  esac
+  cat > "${BIN_DIR}/${name}" <<EOF
+#!/usr/bin/env bash
+export PYTHONPATH="${SKILL_ROOT}/scripts:\${PYTHONPATH:-}"
+exec python3 "${SKILL_ROOT}/scripts/${script}" ${prefix} "\$@"
+EOF
+  chmod +x "${BIN_DIR}/${name}"
+done
+ok "命令 wrapper 装好: ${BIN_DIR}/ (travel / train / bus / metro / journey)"
+case ":${PATH}:" in
+  *":${BIN_DIR}:"*) ;;
+  *) echo "     把 ${BIN_DIR} 加进 PATH:  export PATH=\"${BIN_DIR}:\$PATH\"" ;;
+esac
+fi  # end SKILL_ROOT guard
+
+echo
 cat <<EOF
 接下来:
-  公交实时: python3 ${DIRNAME}/scripts/bus_query.py live 郴州 2路 --to 湘南幼专
-  地铁换乘: python3 ${DIRNAME}/scripts/metro_query.py plan 上海 徐家汇 陆家嘴
-  天气:     python3 ${DIRNAME}/scripts/weather_query.py live 郴州
-  火车票:   python3 -c "import sys;sys.path.insert(0,'${DIRNAME}/scripts');import train_store,json;print(json.dumps(train_store.train_query({'date':'明天','from_station':'郴州','to_station':'长沙'}),ensure_ascii=False)[:800])"
-  整段出行: python3 ${DIRNAME}/scripts/transit.py journey --from 郴州西 --to 陆家嘴 --date 明天 --weather
+  统一入口: travel help
+  公交实时: travel bus live 郴州 2路 --to 湘南幼专
+  地铁换乘: travel metro plan 上海 徐家汇 陆家嘴
+  天气:     travel weather live 郴州
+  火车票:   travel train 郴州 长沙 明天
+  整段出行: travel journey --from 郴州西 --to 陆家嘴 --date 明天 --weather
 
 EOF

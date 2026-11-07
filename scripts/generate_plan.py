@@ -727,13 +727,13 @@ def interactive_mode():
     return profile
 
 
-def main():
+def main(argv=None) -> int:
     parser = argparse.ArgumentParser(description="旅游攻略规划代码生成器")
     parser.add_argument("--profile", type=str, help="用户偏好 JSON 文件路径")
     parser.add_argument("--output",  type=str, default="./travel_output", help="输出目录")
     parser.add_argument("--interactive", action="store_true", help="交互式输入")
     parser.add_argument("--sql-only", action="store_true", help="仅输出数据库建表 SQL")
-    args = parser.parse_args()
+    args = parser.parse_args(argv)
 
     # 读取或交互式获取 profile
     if args.profile:
@@ -787,7 +787,8 @@ def main():
     print(f"✅ FastAPI 代码骨架已保存: {api_file}")
 
     print(f"\n📁 所有文件已保存至: {output.resolve()}")
+    return 0
 
 
 if __name__ == "__main__":
-    main()
+    raise SystemExit(main())

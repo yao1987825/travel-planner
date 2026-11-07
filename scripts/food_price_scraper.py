@@ -10,11 +10,19 @@
   data/latest_prices.json   - 各城市最新价格
   data/price_history.json   - 历史价格归档
   data/latest_summary.md     - 人类可读的摘要报告
+
+用法：
+  python3 scripts/food_price_scraper.py                    # 采集（会覆盖上面三个文件）
+  python3 scripts/food_price_scraper.py --query            # 只读查询，不联网不写盘
+  python3 scripts/food_price_scraper.py --query --city 郴州 # 只看某个城市
+  python3 scripts/food_price_scraper.py --query --json      # JSON 输出
 """
 
 import os
 import re
 import json
+import sys
+import argparse
 import datetime
 import urllib.request
 import urllib.error
@@ -685,6 +693,55 @@ def generate_summary(data: dict) -> str:
     return "\n".join(lines)
 
 
+def query_prices(city: Optional[str] = None, as_json: bool = False) -> int:
+    """只读本地价格数据 —— 不联网、不写任何文件。
+
+    采集和查询必须分开：采集会覆盖 data/latest_prices.json 与
+    data/price_history.json，查询入口绝不能触发采集。
+    """
+    path = os.path.join(DATA_DIR, "latest_prices.json")
+    data = load_json(path, default={}) or {}
+    cities = data.get("cities") or {}
+    if not cities:
+        print("本地还没有价格数据，先采集一次: python3 scripts/food_price_scraper.py",
+              file=sys.stderr)
+        return 1
+
+    if city:
+        hit = next((k for k in cities if k == city or city in k or k in city), None)
+        if not hit:
+            print(f"没有「{city}」的价格数据。现有城市: {'、'.join(cities)}",
+                  file=sys.stderr)
+            return 1
+        selected = {hit: cities[hit]}
+    else:
+        selected = dict(cities)
+
+    if as_json:
+        print(json.dumps({"updated_at": data.get("updated_at", ""),
+                          "cities": selected}, ensure_ascii=False, indent=2))
+        return 0
+
+    print(f"各地食品价格参考（{data.get('updated_at', '')[:10]} 更新）")
+    for cname, cdata in selected.items():
+        print(f"\n{cname} · {cdata.get('date', '')}  来源: {cdata.get('source', '—')}")
+        by_cat: dict = {}
+        for item in cdata.get("items", []):
+            by_cat.setdefault(item.get("category", "其他"), []).append(item)
+        for cat, group in by_cat.items():
+            print(f"  【{cat}】")
+            for item in group:
+                price = item.get("price", "—")
+                unit = item.get("unit", "")
+                trend = item.get("trend", "")
+                extra = f"  {trend}" if trend else ""
+                print(f"    - {item.get('name', '')}：{price} {unit}{extra}")
+        if cdata.get("note"):
+            print(f"  说明: {cdata['note']}")
+    print("\n> 数据来自政府公开价格监测，每日 08:00 自动更新；实际成交价以市场为准。")
+    return 0
+
+
 # ============================================================
 # 更新历史记录
 # ============================================================
@@ -711,7 +768,19 @@ def update_history(data: dict):
 # 入口
 # ============================================================
 
-def main():
+def main(argv=None) -> int:
+    parser = argparse.ArgumentParser(
+        prog="food_price_scraper",
+        description="食品价格采集（默认）/ 查询本地价格（--query）")
+    parser.add_argument("--query", action="store_true",
+                        help="只读本地价格数据，不联网采集、不写文件")
+    parser.add_argument("--city", help="配合 --query 指定城市")
+    parser.add_argument("--json", action="store_true", help="配合 --query 输出 JSON")
+    args = parser.parse_args(argv)
+
+    if args.query:
+        return query_prices(args.city, args.json)
+
     print(f"=== 食品价格爬虫 {datetime.datetime.now().isoformat()} ===")
 
     # 采集数据
@@ -731,7 +800,8 @@ def main():
     print(f"历史已更新: {HISTORY_FILE}")
 
     print("\n=== 完成 ===")
+    return 0
 
 
 if __name__ == "__main__":
-    main()
+    raise SystemExit(main())
