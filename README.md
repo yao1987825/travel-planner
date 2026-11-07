@@ -33,27 +33,35 @@
 
 ## 配套命令
 
+`install.sh` 会在 PATH 上装好 wrapper，装完直接敲：
+
 | 命令 | 干什么 |
 | --- | --- |
+| `travel` | **统一入口**，下面四个都是它的子命令 |
 | `journey` | **整段出行时间线**（火车+地铁+公交+天气） |
 | `metro` | 地铁换乘 / 线路站点 / 车站首末班车 |
 | `bus` | 公交实时车辆 / 到站预测 / 站点线路 / 直达线路 |
 | `train` | 12306 火车票余票 |
-| `travel` | 旅游攻略 / 行程规划 / 美食价格 |
 
 ```bash
-# 整段出行（跨城）
+# 统一入口
+travel metro plan 上海 徐家汇 陆家嘴
+travel bus live 郴州 2路 --to 湘南幼专
+travel weather live 郴州
+travel train 郴州 长沙 明天
+travel journey --from 郴州西 --to 陆家嘴 --date 明天 --weather
+travel plan --profile profile.json --output ./trip
+travel price 上海                       # 本地价格参考（只读，不联网采集）
+
+# 不用 wrapper 时，直接调脚本，效果相同
 python3 scripts/transit.py journey --from 郴州西 --to 陆家嘴 --date 明天 --weather
-
-# 市内地铁
 python3 scripts/metro_query.py plan 上海 徐家汇 陆家嘴
-
-# 公交到站预测
 python3 scripts/bus_query.py live 郴州 2路 --to 湘南幼专
-
-# 天气
 python3 scripts/weather_query.py live 郴州
 ```
+
+> `travel price` 是**只读查询**本地价格数据；`python3 scripts/food_price_scraper.py`
+> 才是采集，会覆盖 `data/` 下的价格文件。
 
 ## 支持城市
 
@@ -78,8 +86,12 @@ cd travel-planner
 bash scripts/install.sh
 ```
 
-装到 `~/.config/opencode/skills/travel-planner/`，重启 opencode 后即可被自动发现。
-镜像里已预装的话重装是安全的 —— `data/` 不会被覆盖。
+装到 opencode 的技能目录（`~/.opencode/skills/travel-planner/`，没有则用
+`~/.config/opencode/skills/`），并在 PATH 上（优先 `~/.local/bin`）装好
+`travel` / `journey` / `metro` / `bus` / `train` 五个命令。
+重启 opencode 后技能即可被自动发现。
+镜像里已预装的话重装是安全的 —— `data/` 不会被覆盖；
+如果技能目录是指向仓库的符号链接（开发模式），install.sh 不会覆盖任何文件。
 
 体检：
 
@@ -88,7 +100,7 @@ bash scripts/preflight.sh
 ```
 
 > **不需要申请任何 API Key**（原来的高德 Key 已随高德服务一起移除）。
-> 也不需要 `pip install` —— 全部脚本零第三方依赖。
+> 也不需要 `pip install` —— 核心脚本零第三方依赖。
 
 ### B. RikkaHub（安卓）—— 技能 + 工作区
 
@@ -139,13 +151,15 @@ travel-planner/
 ├── SKILL.md                    # 技能主文件（出行主线）
 ├── scripts/
 │   ├── transit.py              # ★ 跨方式出行编排（主入口）
+│   ├── travel.py               # ★ 统一命令入口（travel <子命令>）
+│   ├── train_cli.py            # 12306 命令行入口
 │   ├── metro_query.py          # 地铁查询
 │   ├── metroman/               #   地铁数据层（纯标准库）
 │   ├── weather_query.py        # 天气（中国天气网）
 │   ├── bus_query.py            # 公交实时（掌上公交 + 车来了）
 │   ├── train_store.py          # 12306 火车票
 │   ├── generate_plan.py        # 行程规划
-│   ├── food_price_scraper.py   # 美食价格采集
+│   ├── food_price_scraper.py   # 美食价格采集（--query 只读查询）
 │   ├── install.sh / preflight.sh / setup_workspace.sh / package_rikkahub.py
 ├── references/
 │   ├── transit_link.md         # ★ 多方式联动规则
@@ -155,8 +169,20 @@ travel-planner/
 │   ├── cities_attractions.md / food_guide.md / money_saving.md
 │   ├── weather_cities.json     # 天气城市码（3137 个城市/区县）
 │   └── station_cache.json      # 12306 车站电报码表（3407 站，随技能分发）
+├── tests/
+│   └── test_journey.py         # 端到端冒烟测试（24 项）
 └── data/                       # 运行时数据（价格监控 workflow 会更新；车站表刷新副本在此，已 gitignore）
 ```
+
+## 测试
+
+```bash
+python3 tests/test_journey.py            # 全部（需要网络）
+python3 tests/test_journey.py --offline  # 只跑不联网的解析逻辑
+```
+
+端到端跑通四条数据源（公交 / 地铁 / 天气 / 12306）和跨方式编排，共 24 项断言。
+CI 里由 `.github/workflows/test.yml` 每次推送自动执行。
 
 ## 数据来源与逆向
 

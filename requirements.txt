@@ -1,12 +1,25 @@
 # 运行时依赖: **无**
 #
-# 本技能的所有脚本都是纯 Python 标准库实现, 不需要 pip install 任何东西:
+# 核心能力全部是纯 Python 标准库实现, 不需要 pip install 任何东西:
 #   - bus_query.py      公交实时(urllib + 自带 AES 解密)
 #   - metro_query.py    地铁换乘/时刻表(urllib + 自带迷你 HTML 解析器)
+#   - metroman/         地铁数据层(纯标准库)
 #   - weather_query.py  天气(中国天气网 JSONP 接口)
 #   - transit.py        跨方式出行编排(火车+地铁+公交+天气)
 #   - train_store.py    12306 火车票
+#   - train_cli.py      12306 命令行入口
+#   - travel.py         统一命令入口(travel <子命令>)
 #   - generate_plan.py  行程规划
-#   - food_price_scraper.py 美食价格采集
 #
 # 也**不需要任何 API Key**(原来的高德 Key 已随高德服务一起移除)。
+#
+# ── 可选依赖 ────────────────────────────────────────────────────────────────
+# 只有「每日价格采集」这一步用得到, 正常查价(travel price)不需要:
+#   xlrd>=1.2.0   解析上海发改委的 .xls 价格表(需要 xlrd<2.0)
+#
+# GitHub Actions 的 price-monitor workflow 会自己装:
+#   pip install "xlrd==1.2.0" requests
+#
+# 本地想手动采集时:
+#   pip install "xlrd==1.2.0"
+#   python3 scripts/food_price_scraper.py

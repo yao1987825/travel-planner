@@ -40,6 +40,23 @@ compatibility: "需要能执行命令的环境(工具箱 U 盘 / opencode / Rikk
 
 **不确定就问用户**，别瞎猜起点终点。
 
+### 统一入口：`travel`（推荐）
+
+所有能力都收在一个命令族下，装好命令后直接敲：
+
+```bash
+travel metro plan 上海 徐家汇 陆家嘴      # 地铁换乘
+travel bus live 郴州 2路 --to 湘南幼专     # 公交到站预测
+travel weather live 郴州                 # 天气
+travel train 郴州 长沙 明天               # 火车票
+travel journey --from 郴州西 --to 陆家嘴 --date 明天 --weather
+travel plan --profile profile.json --output ./trip
+travel price 上海                        # 本地价格参考（只读）
+travel help                              # 完整清单
+```
+
+没装命令时，用等价的 `python3 scripts/<脚本>.py ...` 形式即可。
+
 ---
 
 ## 2. 主入口：拼一条完整出行时间线
@@ -102,7 +119,7 @@ python3 scripts/transit.py journey --from 郴州西 --to 陆家嘴 --date 明天
 
 ```bash
 python3 scripts/metro_query.py plan 上海 徐家汇 陆家嘴
-python3 scripts/metro_query.py plan 北京 "3号航站楼" "天安门东" --mode first --datetime 202611061043
+python3 scripts/metro_query.py plan 北京 "3号航站楼" "天安门东" --mode first --datetime 202611081043
 python3 scripts/metro_query.py plan 上海 人民广场 虹桥火车站 --fare cash
 python3 scripts/metro_query.py station 上海 徐家汇      # 各方向首末班车
 python3 scripts/metro_query.py line 上海 1号线          # 途经站顺序
@@ -113,6 +130,7 @@ python3 scripts/metro_query.py cities                   # 55 城市
 
 - `--mode`：`now` / `depart` / `arrive` / `first` / `last`；非 `now` 必须带 `--datetime YYYYMMDDHHMM`
 - `--fare`：`ic`（交通卡）/ `cash`（现金），票价不同
+- **`--datetime` 必须是未来时间**（`YYYYMMDDHHMM`）——用过去的时间查询，服务端不会返回结果，表现为请求超时
 - **口语地标已内置映射**：「首都机场」→`3号航站楼`、「虹桥机场」→`虹桥1号航站楼`、「白云机场」→`机场北(2号航站楼)`
 - 车站名多个候选时脚本会列出来并要求 `--pick N` 确认
 
@@ -148,7 +166,7 @@ python3 scripts/weather_query.py all 郴州 --json  # 全部
 ### 3.4 火车票（12306）
 
 ```bash
-python3 -c "import sys;sys.path.insert(0,'scripts');import train_store,json;print(json.dumps(train_store.train_query({'date':'明天','from_station':'郴州','to_station':'长沙'}),ensure_ascii=False))"
+python3 scripts/train_cli.py 郴州 长沙 明天
 ```
 
 或直接用 `transit.py journey --mode train`。
@@ -231,15 +249,25 @@ python3 scripts/generate_plan.py --profile profile.json --output ./trip
 
 ### 环境 A：工具箱 U 盘 / opencode（有 bash）
 
-命令直接可用：
+装一次，命令直接可用：
+
+```bash
+bash scripts/install.sh
+```
+
+它做两件事：把技能复制到 opencode 的技能目录（`~/.opencode/skills/`，没有则用
+`~/.config/opencode/skills/`），并在 PATH 上的目录（优先 `~/.local/bin`）装好命令 wrapper：
 
 | 命令 | 干什么 |
 |------|--------|
-| `travel` | 行程规划 / 景点美食 / 天气 / 导航 |
+| `travel` | 统一入口，下面五个都是它的子命令 |
 | `train` | 12306 火车票余票 |
 | `bus` | 公交实时车辆 / 到站预测 |
 | `metro` | 地铁换乘 / 时刻表 |
 | `journey` | 整段出行时间线（火车+地铁+公交+天气） |
+
+装完自检：`bash scripts/preflight.sh`。
+如果 `~/.local/bin` 不在 PATH 里，install.sh 会提示怎么加。
 
 ### 环境 B：RikkaHub / 手机工作区（proot Linux）
 

@@ -1,0 +1,34 @@
+name: Test
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      # 离线断言：时间换算、站名映射、末班跨日折算
+      - name: Offline checks
+        run: python3 tests/test_journey.py --offline
+
+      # 在线断言：公交 / 地铁 / 天气 / 12306 + 跨方式编排
+      - name: End-to-end checks
+        run: python3 tests/test_journey.py
+
+      - name: Shell scripts syntax check
+        run: |
+          bash -n scripts/install.sh
+          bash -n scripts/preflight.sh
+          bash -n scripts/setup_workspace.sh
