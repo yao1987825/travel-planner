@@ -58,10 +58,28 @@ def test_offline() -> None:
     check("末班跨日折算", transit.fmt_service_minutes(1476) == "次日00:36")
     check("服务窗口分钟数", transit.metro_service_window([], "saturday") == (None, None))
 
+    print("[离线] 行程规划多城市景点库")
+    import generate_plan
+
+    md = generate_plan.load_attractions_from_md()
+    check("景点库含郴州", "郴州" in md and len(md["郴州"]) >= 5)
+    check("景点库含长沙", "长沙" in md and len(md["长沙"]) >= 5)
+    check("景点库含上海", "上海" in md and len(md["上海"]) >= 5)
+    check("门票解析免费", generate_plan._parse_ticket("免费（小火车20)") == 0.0)
+    check("门票解析付费", generate_plan._parse_ticket("40（学生20）") == 40.0)
+    check("时长解析", generate_plan._parse_duration("3-4h") == 3.5)
+
 
 def test_metro() -> None:
     print("[在线] 地铁")
-    code, out, err = run(["metro_query.py", "plan", "上海", "徐家汇", "陆家嘴"])
+    # 用「明天的 10:00」作为查询时刻，避免深夜（末班车后）mode=now 查不到方案
+    from datetime import datetime, timedelta
+
+    future = (datetime.now() + timedelta(days=1)).strftime("%Y%m%d1000")
+    code, out, err = run([
+        "metro_query.py", "plan", "上海", "徐家汇", "陆家嘴",
+        "--mode", "depart", "--datetime", future,
+    ])
     check("地铁换乘方案", code == 0 and "号线" in out, err[:120])
     check("地铁含票价", "元" in out)
 
@@ -104,8 +122,11 @@ def test_train() -> None:
 
 def test_journey() -> None:
     print("[在线] 跨方式编排")
+    # 用「明天」避免深夜 mode=now 查不到地铁；跨城 journey 已优化为常用城市优先，
+    # 不会再花几分钟构建全网车站索引。
     code, out, err = run(
-        ["transit.py", "journey", "--city", "上海", "--from", "人民广场", "--to", "陆家嘴"]
+        ["transit.py", "journey", "--city", "上海", "--from", "人民广场",
+         "--to", "陆家嘴", "--date", "明天"]
     )
     check("市内 journey", code == 0 and "地铁" in out, err[:150])
 

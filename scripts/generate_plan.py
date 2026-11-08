@@ -14,6 +14,7 @@ profile.json 格式见 --help 或 references/travel_api.md
 import argparse
 import json
 import os
+import re
 import sys
 from datetime import date, timedelta
 from pathlib import Path
@@ -87,6 +88,128 @@ def format_price_context(price_data: dict, city: str) -> str:
         lines.append(f"> {city_data['note']}")
 
     return "\n".join(lines)
+
+
+# ─── 从 references/cities_attractions.md 加载多城市景点库 ─────────────────────
+# 脚本不再只支持上海：README/SKILL 承诺的五城（郴州/长沙/衡阳/上海等）景点
+# 都在这份 md 里，这里把它们解析成与内置库相同结构的 dict。
+
+_KNOWN_CITY_RE = re.compile(r"^[\u4e00-\u9fff]{2,4}$")
+
+
+def _parse_ticket(text: str) -> float:
+    """门票列 -> 价格。
+
+    '免费' / '免费（小火车20)' -> 0；'40（学生20）' -> 40；'150-298' -> 150；
+    '5（缆车单程25）' -> 5。
+    """
+    text = (text or "").strip()
+    if not text or text in ("—", "-", "免费"):
+        return 0.0
+    m = re.search(r"(\d+(?:\.\d+)?)", text)
+    if not m:
+        return 0.0
+    # 「免费（小火车20)」这种：免费出现在数字前，说明景点本身免费，附加项才收费
+    if "免费" in text[:m.start()]:
+        return 0.0
+    return float(m.group(1))
+
+
+def _parse_duration(text: str) -> float:
+    """游玩时长列 -> 小时。'3-4h' -> 3.5；'1-2天' -> 8；'半天-1天' -> 8；'全天' -> 8。"""
+    text = (text or "").strip()
+    if "天" in text:
+        return 8.0
+    nums = [float(x) for x in re.findall(r"\d+(?:\.\d+)?", text)]
+    if not nums:
+        return 2.0
+    return sum(nums) / len(nums) if len(nums) > 1 else nums[0]
+
+
+def _star_rating(text: str) -> float:
+    """必去指数列（★★★★☆）-> 评分（4.0）。"""
+    text = (text or "").strip()
+    full = text.count("★")
+    half = text.count("☆")
+    if full or half:
+        return float(full)
+    m = re.search(r"(\d+(?:\.\d+)?)", text)
+    return float(m.group(1)) if m else 3.0
+
+
+def _parse_attraction_table(section: str) -> list:
+    """解析一个城市章节里的 markdown 表格为景点 dict 列表。"""
+    rows = []
+    for line in section.splitlines():
+        line = line.strip()
+        if not line.startswith("|"):
+            continue
+        cells = [c.strip() for c in line.strip("|").split("|")]
+        if len(cells) < 7:
+            continue
+        if cells[0] in ("景点", "路线") or "门票" in cells[0]:
+            continue
+        if cells[0].startswith("---"):
+            continue
+        rows.append(cells)
+
+    attractions = []
+    for idx, cells in enumerate(rows, 1):
+        name = cells[0]
+        ticket = _parse_ticket(cells[1]) if len(cells) > 1 else 0.0
+        duration = _parse_duration(cells[2]) if len(cells) > 2 else 2.0
+        district = cells[3] if len(cells) > 3 else ""
+        category = cells[4] if len(cells) > 4 else "文化"
+        stars = cells[6] if len(cells) > 6 else "★★★"
+        tips = cells[8] if len(cells) > 8 else ""
+        rating = _star_rating(stars)
+        attractions.append({
+            "id": idx,
+            "name": name,
+            "category": category,
+            "district": district,
+            "avg_duration_h": duration,
+            "ticket_price": ticket,
+            "rating": rating,
+            "crowd_level": "mid",
+            "tags": [],
+            "best_time": "",
+            "priority": int(round(rating)),
+            "tips": tips,
+            "description": "",
+        })
+    return attractions
+
+
+def load_attractions_from_md() -> dict:
+    """解析 references/cities_attractions.md -> {城市: [景点dict, ...]}。"""
+    md_path = Path(__file__).resolve().parent.parent / "references" / "cities_attractions.md"
+    if not md_path.exists():
+        return {}
+    try:
+        text = md_path.read_text(encoding="utf-8")
+    except OSError:
+        return {}
+
+    result = {}
+    food_tips = {}
+    for section in re.split(r"\n##\s+", text):
+        title_line = section.splitlines()[0] if section.splitlines() else ""
+        m = re.match(r"^[一二三四五六七八九十]、\s*([^（(]+)", title_line)
+        city_name = m.group(1).strip() if m else ""
+        if not _KNOWN_CITY_RE.match(city_name):
+            continue
+        attractions = _parse_attraction_table(section)
+        if attractions:
+            result[city_name] = attractions
+        # 「XX必吃：」一行作为城市美食提示
+        fm = re.search(r"\*\*([^*]+?)必吃：\*\*\s*(.+)", section)
+        if fm:
+            food_tips[city_name] = fm.group(2).strip()
+    if food_tips:
+        result["_food_tips"] = food_tips
+    return result
+
 
 # ─── 内置上海景点库 ────────────────────────────────────────────────────────────
 SHANGHAI_ATTRACTIONS = [
@@ -227,26 +350,45 @@ class TravelPlanner:
         self.days = int(profile.get("travel_days", 3))
         self.budget = float(profile.get("budget_cny", 3000))
         self.budget_level = profile.get("budget_level", "mid")
+        if self.budget_level not in BUDGET_DAILY:
+            self.budget_level = "mid"
         self.styles = profile.get("travel_style", ["文化", "美食"])
         self.group_type = profile.get("group_type", "solo")
         self.mobility = profile.get("mobility", "mid")
+        if self.mobility not in MOBILITY_MAX_ITEMS:
+            self.mobility = "mid"
         self.depart_date = profile.get("depart_date", str(date.today()))
+        try:
+            date.fromisoformat(self.depart_date)
+        except ValueError:
+            self.depart_date = str(date.today())
         self.daily_start = profile.get("options", {}).get("daily_start_time", "09:00")
         self.daily_end = profile.get("options", {}).get("daily_end_time", "21:00")
         self.avoid_crowded = profile.get("options", {}).get("avoid_crowded", False)
         self.prefer_free = profile.get("options", {}).get("prefer_free", False)
         self.include_disney = profile.get("options", {}).get("include_disney", False)
 
-        # 脚本里只内置了上海的景点库; 另外四城(郴州/长沙/衡阳/清远)的景点在
-        # references/cities_attractions.md 里, 由 **AI 按技能去读** —— 这是这个项目的
-        # 设计意图(SKILL.md 写明"不执行脚本, 直接调 HTTP API")。
-        # 但命令行直接跑时会得到一份"第N天自由活动"的空行程, 很容易被误以为是 bug,
-        # 所以这里明确提示: 要景点就去读那份 md, 或者让 AI 按技能生成。
-        self._attractions = SHANGHAI_ATTRACTIONS if self.city == "上海" else []
+        # 景点库：优先解析 references/cities_attractions.md 里的多城市数据，
+        # 解析不到再退回内置上海库。
+        self._md_data = load_attractions_from_md()
+        md_attractions = {k: v for k, v in self._md_data.items() if k != "_food_tips"}
+        self._food_tips = self._md_data.get("_food_tips", {})
+        self._attractions = self._pick_attractions(md_attractions)
         if not self._attractions:
-            print(f"⚠️  脚本内置景点库只有「上海」; 「{self.city}」的景点资料在:")
-            print(f"    {Path(__file__).resolve().parent.parent / 'references' / 'cities_attractions.md'}")
-            print("    (让 opencode 按 travel-planner 技能生成, 或换 --dest-city 上海 试脚本)")
+            print(f"⚠️  暂未内置「{self.city}」的景点库; 可用城市: "
+                  f"{'、'.join(md_attractions) or '上海'}")
+
+    def _pick_attractions(self, md_attractions: dict) -> list:
+        """按城市选择景点库：精确 -> 包含 -> 内置上海兜底。"""
+        city = (self.city or "").strip()
+        if city in md_attractions:
+            return md_attractions[city]
+        if city == "上海":
+            return SHANGHAI_ATTRACTIONS
+        for key in md_attractions:
+            if key in city or city in key:
+                return md_attractions[key]
+        return []
 
     # ── 景点评分 ──────────────────────────────────────────────────────────────
     def _score_attraction(self, a: dict) -> float:
@@ -331,10 +473,14 @@ class TravelPlanner:
 
             items = []
             current_time_h = int(self.daily_start.split(":")[0])
+            has_metro = self.city == "上海"
 
             for i, a in enumerate(day_attractions):
                 visit_time = f"{current_time_h:02d}:00"
-                transport = "步行" if i == 0 else f"地铁/打车（约15分钟）"
+                if i == 0:
+                    transport = "步行"
+                else:
+                    transport = "地铁/打车（约15分钟）" if has_metro else "公交/打车（约15分钟）"
                 items.append({
                     "seq": i + 1,
                     "type": "attraction",
@@ -349,9 +495,10 @@ class TravelPlanner:
                 })
                 current_time_h += int(a["avg_duration_h"]) + 1  # +1 交通/休息
 
-            # 餐饮建议
-            districts_today = list({a["district"] for a in day_attractions})
-            main_district = districts_today[0] if districts_today else "市区"
+            # 餐饮建议：取当天出现最多的区域，避免 set 顺序不稳定
+            districts_today = [a["district"] for a in day_attractions]
+            main_district = (max(set(districts_today), key=districts_today.count)
+                             if districts_today else "市区")
 
             days_out.append({
                 "day_index": d + 1,
@@ -370,9 +517,10 @@ class TravelPlanner:
     def _day_theme(self, attractions: list, day_idx: int) -> str:
         if not attractions:
             return f"第{day_idx+1}天自由活动"
-        districts = list({a["district"] for a in attractions})
+        districts = [a["district"] for a in attractions]
+        main = max(set(districts), key=districts.count) if districts else "市区"
         names = "、".join(a["name"] for a in attractions[:2])
-        return f"{districts[0]}精华游 · {names}等"
+        return f"{main}精华游 · {names}等"
 
     def _meal_tip(self, meal: str, district: str) -> str:
         tips = {
@@ -398,6 +546,10 @@ class TravelPlanner:
             },
         }
         default = {"早餐": "附近酒店早餐或便利店", "午餐": "就近餐厅", "晚餐": "当地特色餐厅"}
+        if meal == "晚餐":
+            city_food = self._food_tips.get(self.city)
+            if city_food:
+                return f"{city_food}（详见 references/food_guide.md）"
         return tips.get(district, default).get(meal, "就近选择")
 
     def _day_budget(self, attractions: list) -> float:

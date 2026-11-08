@@ -23,3 +23,6 @@ _commit_msg.txt
 
 # 打包产物: zip 走 GitHub Release 发, 不进仓库
 dist/
+
+# generate_plan.py 的默认输出目录
+travel_output/

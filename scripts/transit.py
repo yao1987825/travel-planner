@@ -41,6 +41,13 @@ from dataclasses import dataclass, field
 from datetime import datetime, timedelta
 from typing import Any, Dict, List, Optional, Tuple
 
+try:  # Python 3.9+ 自带 zoneinfo；旧版本回退到系统本地时区
+    from zoneinfo import ZoneInfo
+
+    _CHINA_TZ = ZoneInfo("Asia/Shanghai")
+except Exception:  # pragma: no cover
+    _CHINA_TZ = None
+
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
 
@@ -64,6 +71,9 @@ MODE_ZH = {
     "walk": "步行",
     "drive": "驾车",
 }
+
+# 地铁城市索引优先扫描的常用城市（覆盖绝大多数「地标->城市」反查场景）
+PREFER_CITIES = ("北京", "上海", "广州", "深圳", "成都", "杭州", "南京", "重庆", "武汉", "西安")
 
 
 # ═══════════════════════════════════════════════════════════════ 数据模型
@@ -148,6 +158,15 @@ class Journey:
 
 
 def now() -> datetime:
+    """当前时间。
+
+    出行场景以北京时间为准：工作区/容器经常跑在 UTC，直接用 ``datetime.now()``
+    会让「今天/明天」和地铁 ``now`` 模式算错（北京时间已过午夜，UTC 还是前一天）。
+    有 zoneinfo 时取 Asia/Shanghai 的墙钟时间（去掉 tzinfo，保持 naive datetime，
+    后续 timedelta / strftime 行为不变）。
+    """
+    if _CHINA_TZ is not None:
+        return datetime.now(_CHINA_TZ).replace(tzinfo=None)
     return datetime.now()
 
 
@@ -349,7 +368,9 @@ class MetroAdapter:
     def city_of(self, text: str) -> Optional[str]:
         """地名 -> 地铁城市 key。
 
-        顺序：城市名精确 -> 城市名前缀（「上海虹桥」-> 上海）-> 全网车站名（「陆家嘴」-> 上海）。
+        顺序：城市名精确 -> 城市名前缀（「上海虹桥」-> 上海）-> 铁路站名反推城市
+        （「郴州西」-> 郴州）-> 全网车站名索引（「陆家嘴」-> 上海，带磁盘缓存、
+        常用城市优先，避免首次构建 55 城索引导致 journey 长时间卡住）。
         """
         from metroman.resolver import resolve_city
 
@@ -363,23 +384,94 @@ class MetroAdapter:
                 return city.key
             if city.en and text.lower().startswith(city.en.lower()):
                 return city.key
-        index = self.station_index()
-        for candidate in (text, text.replace("站", "")):
-            hits = index.get(candidate)
-            if hits:
-                return hits[0]
+        # 铁路站名 -> 城市：12306 站名通常以城市名开头（上海虹桥、长沙南、郴州西）
+        if rail_station_code(text):
+            city = self._city_of_rail_station(text, cities)
+            if city:
+                return city
+            # 是铁路站名但没推出地铁城市（如「郴州西」）：只在已有缓存时查一下，
+            # 避免为铁路站名触发全网地铁站扫描（它几乎不可能是别城的地铁站）。
+            cached = self._load_station_index_cache()
+            if cached:
+                self._index = cached
+                for candidate in (text, text.replace("站", "")):
+                    hits = cached.get(candidate)
+                    if hits:
+                        return hits[0]
+            return None
+        return self.city_of_station(text)
+
+    def _city_of_rail_station(self, name: str, cities: List[Any]) -> Optional[str]:
+        """铁路站名 -> 地铁城市 key。按城市名长度降序匹配，避免短名误伤。"""
+        for city in sorted(cities, key=lambda c: len(c.name or ""), reverse=True):
+            if city.name and name.startswith(city.name):
+                return city.key
         return None
 
-    def station_index(self) -> Dict[str, List[str]]:
-        """站名/slug -> 城市 key 列表（覆盖全部 55 城；页面有磁盘缓存，二次调用很快）。"""
-        if self._index is not None:
+    # 全网车站索引的磁盘缓存（~/.cache/metroman/station_index.json）
+    _CITIES_KEY = "__cities__"
+
+    @staticmethod
+    def _station_index_path() -> str:
+        base = os.environ.get("METROMAN_CACHE_DIR")
+        if not base:
+            xdg = os.environ.get("XDG_CACHE_HOME")
+            base = xdg or os.path.join(os.path.expanduser("~"), ".cache")
+        return os.path.join(base, "metroman", "station_index.json")
+
+    def _load_station_index_cache(self) -> Optional[Dict[str, List[str]]]:
+        path = self._station_index_path()
+        try:
+            if os.path.exists(path):
+                with open(path, "r", encoding="utf-8") as fh:
+                    data = json.load(fh)
+                if isinstance(data, dict) and self._CITIES_KEY in data:
+                    self._index_cities = set(data.get(self._CITIES_KEY, []))
+                    return {k: v for k, v in data.items() if k != self._CITIES_KEY}
+                # 旧格式（纯站名->城市列表）：从 value 推断已覆盖城市
+                covered = set()
+                for city_list in data.values():
+                    if isinstance(city_list, list):
+                        covered.update(city_list)
+                self._index_cities = covered
+                return data
+        except (OSError, ValueError):
+            pass
+        return None
+
+    def _save_station_index_cache(self, index: Dict[str, List[str]],
+                                   cities: Optional[List[str]] = None) -> None:
+        path = self._station_index_path()
+        try:
+            os.makedirs(os.path.dirname(path), exist_ok=True)
+            data = dict(index)
+            data[self._CITIES_KEY] = sorted(
+                cities or getattr(self, "_index_cities", []))
+            with open(path, "w", encoding="utf-8") as fh:
+                json.dump(data, fh, ensure_ascii=False)
+        except OSError:
+            pass
+
+    def station_index(self, refresh: bool = False) -> Dict[str, List[str]]:
+        """站名/slug -> 城市 key 列表（覆盖全部 55 城）。
+
+        带磁盘缓存（默认 7 天），首次构建按「常用城市优先」的顺序，命中即可提前返回，
+        避免联网遍历全部城市把 journey 卡死。
+        """
+        if self._index is not None and not refresh:
             return self._index
+        cached = self._load_station_index_cache()
+        if cached and not refresh:
+            self._index = cached
+            return cached
         index: Dict[str, List[str]] = {}
+        covered: List[str] = []
         for city in self.mm.cities():
             try:
                 stations = self.mm.stations(city.key)
             except Exception:
                 continue
+            covered.append(city.key)
             for station in stations:
                 for key in {station.name, station.slug, *station.aliases}:
                     if not key:
@@ -388,7 +480,85 @@ class MetroAdapter:
                     if city.key not in bucket:
                         bucket.append(city.key)
         self._index = index
+        self._index_cities = set(covered)
+        self._save_station_index_cache(index, covered)
         return index
+
+    def city_of_station(self, text: str) -> Optional[str]:
+        """用地铁站名反查城市。
+
+        先读磁盘缓存；没有缓存时按常用城市优先逐个拉取，命中即返回并写缓存。
+        缓存未命中（比如非常用城市的地铁站）时继续扫描未覆盖城市并扩展缓存。
+        这样「陆家嘴」这类地标在首次运行也只扫常用 10 城，而不是 55 城全量。
+        """
+        candidates = (text, text.replace("站", ""))
+        cached = self._load_station_index_cache()
+        if cached:
+            self._index = cached
+            for candidate in candidates:
+                hits = cached.get(candidate)
+                if hits:
+                    return hits[0]
+            # 缓存未命中：继续扫描尚未覆盖的城市
+            covered = set(getattr(self, "_index_cities", []))
+            remaining = [c for c in self.mm.cities() if c.key not in covered]
+            if not remaining:
+                return None
+            index = dict(cached)
+            for city in remaining:
+                try:
+                    stations = self.mm.stations(city.key)
+                except Exception:
+                    continue
+                covered.add(city.key)
+                for station in stations:
+                    for key in {station.name, station.slug, *station.aliases}:
+                        if not key:
+                            continue
+                        bucket = index.setdefault(key, [])
+                        if city.key not in bucket:
+                            bucket.append(city.key)
+                for candidate in candidates:
+                    hits = index.get(candidate)
+                    if hits:
+                        self._index = index
+                        self._index_cities = covered
+                        self._save_station_index_cache(index, sorted(covered))
+                        return hits[0]
+            self._index = index
+            self._index_cities = covered
+            self._save_station_index_cache(index, sorted(covered))
+            return None
+
+        cities = self.mm.cities()
+        prefer = [c for c in cities if c.name in PREFER_CITIES]
+        rest = [c for c in cities if c not in prefer]
+        index: Dict[str, List[str]] = {}
+        covered_list: List[str] = []
+        for city in prefer + rest:
+            try:
+                stations = self.mm.stations(city.key)
+            except Exception:
+                continue
+            covered_list.append(city.key)
+            for station in stations:
+                for key in {station.name, station.slug, *station.aliases}:
+                    if not key:
+                        continue
+                    bucket = index.setdefault(key, [])
+                    if city.key not in bucket:
+                        bucket.append(city.key)
+            for candidate in candidates:
+                hits = index.get(candidate)
+                if hits:
+                    self._index = index
+                    self._index_cities = set(covered_list)
+                    self._save_station_index_cache(index, covered_list)
+                    return hits[0]
+        self._index = index
+        self._index_cities = set(covered_list)
+        self._save_station_index_cache(index, covered_list)
+        return None
 
     def stations(self, city: str) -> List[Any]:
         return self.mm.stations(city)
@@ -700,7 +870,73 @@ def build_walk_leg(origin: str, dest: str) -> Optional[Leg]:
         origin=origin,
         dest=dest,
         detail={"note": "步行段，具体路线请用地图 App 查询"},
-        notes=["末段步行：站到目的地之间还有一段路，导步行程请用地图 App"],
+        notes=["末段步行：站到目的地之间还有一段路，步行导航请用地图 App"],
+    )
+
+
+def build_bus_leg(city: str, origin: str, dest: str) -> Optional[Leg]:
+    """公交兜底段：地铁不可达时，用 bus_query 的「直达线路」接口拼一段公交。
+
+    公交接口只做**直达**查询（不做换乘规划），也没有精确发车时刻，
+    所以这一段只给线路/方向/大概站数，实时到站交给 bus_query live。
+    查询放在子线程里并设超时，避免公交接口慢时把整个 journey 卡住。
+    """
+    import contextlib
+    import io
+    import threading
+
+    import bus_query
+
+    namespace = argparse.Namespace(
+        city=city, origin=origin, destination=dest,
+        src=None, json=True, limit=5,
+    )
+    buf = io.StringIO()
+    result: dict = {}
+
+    def _run() -> None:
+        nonlocal result
+        try:
+            with contextlib.redirect_stdout(buf):
+                rc = bus_query.cmd_route(namespace)
+            if rc == 0:
+                try:
+                    result = json.loads(buf.getvalue())
+                except ValueError:
+                    result = {}
+        except SystemExit:
+            result = {}
+        except Exception:
+            result = {}
+
+    worker = threading.Thread(target=_run, daemon=True)
+    worker.start()
+    worker.join(timeout=25)
+    if worker.is_alive() or not result:
+        return None
+    usable = [d for d in result.get("direct", []) if d.get("usable")]
+    if not usable:
+        return None
+    best = usable[0]
+    stops = best.get("stops")
+    return Leg(
+        mode="bus",
+        title=f"{best.get('lineName')} {origin}→{dest}",
+        origin=origin,
+        dest=dest,
+        duration_min=None,
+        cost=2.0,
+        cost_text="2元",
+        detail={
+            "city": result.get("city", city),
+            "routes": usable[:3],
+            "note": "公交为直达方案，无精确发车时刻；实时到站请用 bus_query live 查询",
+        },
+        notes=[
+            f"{best.get('lineName')}：起点第 {best.get('originOrder')} 站 → "
+            f"终点第 {best.get('destOrder')} 站（约 {stops} 站）",
+            "公交实时到站请用 `bus_query.py live` 查看车辆位置与到站预测",
+        ],
     )
 
 
@@ -762,9 +998,14 @@ def compose_journey(args: argparse.Namespace) -> Journey:
             journey.legs.append(leg)
             leg_from = candidate
             if candidate != args.dest:
-                journey.warnings.append(
-                    f"12306 上没查到直达「{args.dest}」，先到「{candidate}」，"
-                    f"再在目的城市内换乘")
+                if dest_rail:
+                    journey.warnings.append(
+                        f"12306 上没查到直达「{args.dest}」，先到「{candidate}」，"
+                        f"再在目的城市内换乘")
+                else:
+                    journey.warnings.append(
+                        f"「{args.dest}」不是铁路站名，先坐火车到「{candidate}」，"
+                        f"再在目的城市内换乘")
             if leg.arrive:
                 next_start = leg.arrive + timedelta(
                     minutes=BUFFER.get(("train", "metro"), 20))
@@ -790,8 +1031,19 @@ def compose_journey(args: argparse.Namespace) -> Journey:
                 next_start = metro_leg.arrive + timedelta(
                     minutes=BUFFER.get(("metro", "walk"), 5))
         else:
-            journey.warnings.append(
-                f"市内段没找到地铁直达方案（{city}·{leg_from}→{leg_to}）")
+            # 公交兜底：地铁不可达时给直达公交方案，而不是只报一句「没找到」
+            bus_leg = None
+            if args.mode in ("auto", "bus"):
+                bus_leg = build_bus_leg(city, leg_from, leg_to)
+            if bus_leg:
+                journey.legs.append(bus_leg)
+                leg_to = bus_leg.dest
+                journey.warnings.append(
+                    f"地铁没有直达方案，已改用公交兜底（{city}·{leg_from}→{leg_to}）")
+            else:
+                journey.warnings.append(
+                    f"市内段没找到地铁直达方案，公交也没有直达线路"
+                    f"（{city}·{leg_from}→{leg_to}）")
 
     # ── 3. 接驳段：地铁站 → 目的地常需要走一段 ───────────────────────────
     if args.mode in ("auto", "walk") and leg_to and leg_to != args.dest:
@@ -808,14 +1060,36 @@ def compose_journey(args: argparse.Namespace) -> Journey:
     return journey
 
 
+def _weather_city_name(city: Optional[str], dest: str) -> str:
+    """把城市参数转成天气查询用的中文城市名。
+
+    - ``city`` 为地铁城市 key（shanghai）-> 查中文名（上海）；
+    - ``city`` 为空 -> 尝试用目的地文字直接作为城市名；
+    - 已经是中文 -> 原样返回。
+    """
+    if city:
+        if city.isascii():
+            try:
+                metro = MetroAdapter()
+                for c in metro.mm.cities():
+                    if c.key == city or c.id == city:
+                        return c.name or city
+            except Exception:
+                pass
+        return city
+    return (dest or "").replace("市", "")
+
+
 def add_weather(journey: Journey, city: Optional[str]) -> None:
-    """把目的地天气挂进行程；有预警就提示改期/备选。"""
-    if not city:
-        return
+    """把目的地天气挂进行程；有预警就提示改期/备选。
+
+    ``city`` 可能是地铁城市 key（shanghai），也可能是中文城市名；
+    统一先转成中文名再查天气，避免依赖 weather_query 的在线搜索兜底。
+    """
     try:
         import weather_query
 
-        name, areaid = weather_query.resolve_area(city)
+        name, areaid = weather_query.resolve_area(_weather_city_name(city, journey.dest))
         data = weather_query.fetch_live(areaid)
     except Exception as exc:
         journey.warnings.append(f"天气没查到（{exc}）")
@@ -928,11 +1202,20 @@ def render(journey: Journey) -> str:
                 lines.append(f"   {leg.detail['transfers']}")
         elif leg.mode == "bus":
             for route in (leg.detail.get("routes") or [])[:3]:
-                lines.append(f"   ▸ {route.get('name') or route.get('line')}"
-                             f"（{route.get('direction', '')}）{route.get('stops', '')}")
+                line_name = (route.get("lineName") or route.get("name")
+                             or route.get("line") or "")
+                direction = route.get("direction", "")
+                stops = route.get("stops")
+                stops_text = f"{stops}站" if stops else ""
+                lines.append(f"   ▸ {line_name}（方向{direction}）{stops_text}")
         elif leg.mode == "walk":
             info = leg.detail
-            lines.append(f"   {info.get('distance_km')}公里 · 约 {info.get('duration_min')}分钟")
+            dist = info.get("distance_km")
+            dur = info.get("duration_min")
+            if dist or dur:
+                lines.append(f"   {dist}公里 · 约 {dur}分钟")
+            else:
+                lines.append(f"   {info.get('note', '步行前往')}")
 
         for note in leg.notes:
             lines.append(f"   ℹ️ {note}")

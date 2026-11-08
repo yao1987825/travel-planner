@@ -411,6 +411,17 @@ def _query_transfer(
 # ═══════════════════════════════════════════════════════════════════
 
 
+def _china_today() -> date:
+    """北京时间今天的日期（容器常跑在 UTC，直接用 date.today() 会差一天）。"""
+    try:
+        from zoneinfo import ZoneInfo
+        from datetime import datetime
+
+        return datetime.now(ZoneInfo("Asia/Shanghai")).date()
+    except Exception:
+        return date.today()
+
+
 def _resolve_date(date_str: str) -> str:
     """将自然语言日期转换为 YYYY-MM-DD 格式。
 
@@ -418,7 +429,7 @@ def _resolve_date(date_str: str) -> str:
     """
     if not date_str:
         return ""
-    today = date.today()
+    today = _china_today()
     relative = {"今天": 0, "明天": 1, "后天": 2, "大后天": 3}
     if date_str in relative:
         return (today + timedelta(days=relative[date_str])).isoformat()
@@ -671,13 +682,13 @@ def _format_reply(action: str, result: dict, is_failed: bool) -> str:
 
 def _format_query(r: dict) -> str:
     """直达票查询回复。"""
-    total = r.get("total", 0)
-    has_count = r.get("has_ticket_count", 0)
-    sold_count = r.get("sold_out_count", 0)
-    trains = r.get("trains", [])
-    from_name = r.get("from", "")
-    to_name = r.get("to", "")
-    d = r.get("date", "")
+    total = r.get("train_count", 0)
+    has_count = r.get("ticket_count", 0)
+    sold_count = r.get("soldout_count", 0)
+    trains = r.get("has_ticket_trains", [])
+    from_name = r.get("depart_station", "")
+    to_name = r.get("arrive_station", "")
+    d = r.get("trip_date", "")
 
     if total == 0:
         return f"{d} {from_name}到{to_name}没有直达车次，要不要帮您查一下中转方案？"
@@ -689,7 +700,7 @@ def _format_query(r: dict) -> str:
         parts.append("全部有票")
 
     if trains:
-        parts.append("有票车次：")
+        train_lines = []
         for t in trains[:5]:
             code = t.get("station_train_code", "")
             start = t.get("start_time", "")
@@ -697,7 +708,9 @@ def _format_query(r: dict) -> str:
             duration = t.get("lishi", "")
             seats = t.get("seats", {})
             seat_str = "、".join(f"{k}{v}" for k, v in seats.items())
-            parts.append(f"{code} {start}发车{arrive}到，历时{duration}，{seat_str}")
+            train_lines.append(
+                f"{code} {start}发车{arrive}到，历时{duration}，{seat_str}")
+        parts.append("有票车次：" + "；".join(train_lines))
 
     return "。".join(parts)
 
@@ -705,14 +718,14 @@ def _format_query(r: dict) -> str:
 def _format_transfer(r: dict) -> str:
     """中转票查询回复。"""
     routes = r.get("routes", [])
-    from_name = r.get("from", "")
-    to_name = r.get("to", "")
-    d = r.get("date", "")
+    from_name = r.get("depart_station", "")
+    to_name = r.get("arrive_station", "")
+    d = r.get("trip_date", "")
 
     if not routes:
         return f"{d} {from_name}到{to_name}没有找到中转方案"
 
-    total = r.get("total", 0)
+    total = r.get("route_count", 0)
     parts = [
         f"{d} {from_name}到{to_name}共找到{total}个中转方案，"
         f"为您展示前{len(routes)}个"

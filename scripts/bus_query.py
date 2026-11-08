@@ -33,6 +33,7 @@ from __future__ import annotations
 
 import argparse
 import base64
+import concurrent.futures
 import hashlib
 import json
 import os
@@ -796,38 +797,75 @@ def cmd_route(args):
         for st in mg_station_search(city, args.destination):
             routes_b.update(st.get("relatedRoutes") or [])
         common = sorted(routes_a & routes_b)
+        # 逐线拉站表是 route 查询的主要耗时，并行拉取避免串行卡死
+        jobs = []
         for name in common:
             for direction, rec in (catalog.get(name) or {}).items():
-                stations = mg_stations(city, name, direction)
-                o_st = match_station(stations, args.origin)
-                d_st = match_station(stations, args.destination)
-                if not o_st or not d_st:
+                jobs.append((name, direction, rec))
+        stations_by_job = {}
+        with concurrent.futures.ThreadPoolExecutor(max_workers=8) as pool:
+            future_map = {
+                pool.submit(mg_stations, city, name, direction): (name, direction, rec)
+                for name, direction, rec in jobs
+            }
+            for future in concurrent.futures.as_completed(future_map, timeout=30):
+                name, direction, rec = future_map[future]
+                try:
+                    stations_by_job[(name, direction)] = future.result()
+                except Exception:
                     continue
-                o_no, d_no = order_of(o_st), order_of(d_st)
-                if not o_no or not d_no:
-                    continue
-                item = {
-                    "lineName": name, "direction": direction,
-                    "from": rec.get("from"), "to": rec.get("to"),
-                    "originOrder": o_no, "destOrder": d_no,
-                    "stops": d_no - o_no,
-                }
-                if o_no < d_no:
-                    item["usable"] = True
-                else:
-                    item["usable"] = False
-                    item["hint"] = "这个方向坐反了, 往反方向坐"
-                out["direct"].append(item)
+        for name, direction, rec in jobs:
+            stations = stations_by_job.get((name, direction))
+            if not stations:
+                continue
+            o_st = match_station(stations, args.origin)
+            d_st = match_station(stations, args.destination)
+            if not o_st or not d_st:
+                continue
+            o_no, d_no = order_of(o_st), order_of(d_st)
+            if not o_no or not d_no:
+                continue
+            item = {
+                "lineName": name, "direction": direction,
+                "from": rec.get("from"), "to": rec.get("to"),
+                "originOrder": o_no, "destOrder": d_no,
+                "stops": d_no - o_no,
+            }
+            if o_no < d_no:
+                item["usable"] = True
+            else:
+                item["usable"] = False
+                item["hint"] = "这个方向坐反了, 往反方向坐"
+            out["direct"].append(item)
     else:
         catalog = cl_lines(city)
-        routes_a, routes_b = set(), set()
+        # 车来了没有「站点搜线路」接口，只能扫全城线路；限制扫描量避免太慢
+        scan_items = []
         for name, recs in catalog.items():
             for rec in recs:
-                names = [x.get("sn") or "" for x in cl_route(rec.get("lineId"), city)]
-                if any(args.origin in n for n in names):
-                    routes_a.add(name)
-                if any(args.destination in n for n in names):
-                    routes_b.add(name)
+                scan_items.append((name, rec))
+        if len(scan_items) > 300:
+            scan_items = scan_items[:300]
+        names_by_line = {}
+        with concurrent.futures.ThreadPoolExecutor(max_workers=8) as pool:
+            future_map = {
+                pool.submit(cl_route, rec.get("lineId"), city): (name, rec)
+                for name, rec in scan_items
+            }
+            for future in concurrent.futures.as_completed(future_map, timeout=30):
+                name, rec = future_map[future]
+                try:
+                    names_by_line[(name, rec.get("lineId"))] = [
+                        x.get("sn") or "" for x in future.result()
+                    ]
+                except Exception:
+                    continue
+        routes_a, routes_b = set(), set()
+        for (name, rec), names in names_by_line.items():
+            if any(args.origin in n for n in names):
+                routes_a.add(name)
+            if any(args.destination in n for n in names):
+                routes_b.add(name)
         for name in sorted(routes_a & routes_b):
             for rec in catalog[name]:
                 stations = cl_route(rec.get("lineId"), city)
