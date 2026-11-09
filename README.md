@@ -27,9 +27,9 @@
 - 🚌 **公交实时**: 线路实时车辆、**到站预测（还有几站/几分钟）**、站点线路、直达线路、全城扫
 - 🌤️ **天气**: 实况 + AQI + **生活指数（穿衣/旅游/运动/紫外线…）** + 气象预警 + 7 天预报 + 逐小时（中国天气网）
 - 🗺️ **景点规划**: 内置景点库（评分/门票/标签/游玩时长），自动生成每日行程
-- 🍽️ **美食推荐**: 内置五城美食价格手册
+- 🍽️ **美食推荐**: 内置多城美食价格手册（含本地实测）
 - 📊 **多预算支持**: 穷游 / 舒适 / 轻奢
-- 📱 **小红书攻略**: 内置 88 篇五城热门推荐，含避坑
+- 📱 **小红书攻略**: 内置 88 篇多城热门推荐，含避坑
 
 ## 配套命令
 
@@ -163,20 +163,41 @@ travel-planner/
 │   ├── bus_query.py            # 公交实时（掌上公交 + 车来了）
 │   ├── train_store.py          # 12306 火车票
 │   ├── generate_plan.py        # 行程规划
+│   ├── validate_data.py        # ★ 参考数据校验（格式/来源/重复项/非法票价）
 │   ├── food_price_scraper.py   # 美食价格采集（--query 只读查询）
 │   ├── install.sh / preflight.sh / setup_workspace.sh / package_rikkahub.py
 ├── references/
+│   ├── data_schema.md          # ★★ 数据规范（新增城市/景点/美食看这里）
 │   ├── transit_link.md         # ★ 多方式联动规则
 │   ├── metro_api.md            # 地铁接口逆向
 │   ├── weather_api.md          # 天气接口逆向
 │   ├── bus_api.md              # 公交接口说明
 │   ├── cities_attractions.md / food_guide.md / money_saving.md
+│   ├── travel_data.json        # ★ 城市注册表（别名/地铁覆盖/来源/风格词表）
 │   ├── weather_cities.json     # 天气城市码（3137 个城市/区县）
 │   └── station_cache.json      # 12306 车站电报码表（3407 站，随技能分发）
 ├── tests/
-│   └── test_journey.py         # 端到端冒烟测试（24 项）
+│   └── test_journey.py         # 端到端冒烟测试
 └── data/                       # 运行时数据（价格监控 workflow 会更新；车站表刷新副本在此，已 gitignore）
 ```
+
+## 加数据（持续维护）
+
+参考数据全部在 `references/` 下，**加城市/景点/美食只改数据文件，不改脚本**：
+
+```bash
+# 1. 按规范写数据 → references/data_schema.md
+#    景点表：references/cities_attractions.md
+#    美食表：references/food_guide.md
+#    注册城市：references/travel_data.json（别名/地铁覆盖/来源/核实年份）
+# 2. 校验（必须 0 error）
+python3 scripts/validate_data.py
+# 3. 跑测试
+python3 tests/test_journey.py --offline
+```
+
+三条铁律：**不编造**（拿不准写「待核实」，不算「免费」）、**有出处**（来源登记在 `travel_data.json`）、
+**单一事实源**（景点数据只放 md，代码里不再内置副本）。
 
 ## 测试
 

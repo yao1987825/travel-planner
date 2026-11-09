@@ -221,18 +221,28 @@ python3 scripts/generate_plan.py --profile profile.json --output ./trip
 
 | 文件 | 内容 |
 |------|------|
-| `references/cities_attractions.md` | 五城景点库（门票、时长、省钱等级） |
-| `references/food_guide.md` | 五城美食价格手册（必吃小吃、店铺、日均预算） |
+| `references/data_schema.md` | **数据规范**（新增城市/景点/美食前必读；含「待核实」票价的处理约定） |
+| `references/travel_data.json` | 城市注册表（别名、地铁覆盖、数据来源、核实年份、风格类别词表） |
+| `references/cities_attractions.md` | 景点库（门票、时长、省钱等级） |
+| `references/food_guide.md` | 美食价格手册（必吃小吃、店铺、日均预算） |
 | `references/money_saving.md` | 全链路省钱攻略 |
-| `references/xiaohongshu_all_cities.md` | 五城小红书推荐合集（88 篇，含避坑） |
+| `references/xiaohongshu_all_cities.md` | 多城小红书推荐合集（88 篇，含避坑） |
 | `references/transit_link.md` | **多方式联动规则**（换乘缓冲、末班车卡点、天气决策） |
 | `references/metro_api.md` | 地铁数据接口逆向说明 |
 | `references/weather_api.md` | 天气数据接口逆向说明 |
 | `references/bus_api.md` | 公交接口说明（掌上公交 + 车来了） |
 | `references/travel_schema.md` / `travel_api.md` | 数据库表结构 / RESTful 接口定义 |
 
-五城速查：郴州（苏仙岭、裕后街免费，东江湖 ¥85）、长沙（橘子洲、岳麓山免费，岳麓书院 ¥40）、
-衡阳（石鼓书院、回雁峰免费，南岳衡山 ¥80）、上海（外滩、武康路免费，豫园 ¥40）。
+**用户要「加一个城市」时**（而不是问行程）：
+
+1. 按 `references/data_schema.md` 写景点表 / 美食表，**门票拿不准就写「待核实」**，不要猜；
+2. 在 `references/travel_data.json` 注册城市（别名、地铁覆盖、**数据来源**、核实年份）；
+3. 跑 `python3 scripts/validate_data.py`（必须 0 error），再跑 `tests/test_journey.py --offline`；
+4. 汇报时说明哪些价格是「待核实」，别把它们当确定数字讲给用户。
+
+重点城市速查：郴州（苏仙岭、裕后街免费，东江湖 ¥85）、长沙（橘子洲、岳麓山免费，岳麓书院 ¥40）、
+衡阳（石鼓书院、回雁峰免费，南岳衡山 ¥80）、上海（外滩、武康路免费，豫园 ¥40）、
+清远（北江南岸公园、桃花湖免费，古龙峡漂流 ¥96-120）、丹东（安东老街、纪念馆免费，断桥 ¥30）。
 
 ---
 

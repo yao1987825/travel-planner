@@ -73,7 +73,22 @@ MODE_ZH = {
 }
 
 # 地铁城市索引优先扫描的常用城市（覆盖绝大多数「地标->城市」反查场景）
-PREFER_CITIES = ("北京", "上海", "广州", "深圳", "成都", "杭州", "南京", "重庆", "武汉", "西安")
+# 优先读 references/travel_data.json 的 metro_priority_cities（数据可改，不用改代码）
+def _load_priority_cities() -> Tuple[str, ...]:
+    path = os.path.join(os.path.dirname(os.path.abspath(__file__)),
+                        "..", "references", "travel_data.json")
+    try:
+        with open(path, "r", encoding="utf-8") as fh:
+            data = json.load(fh)
+        cities = data.get("metro_priority_cities") or []
+        if cities:
+            return tuple(cities)
+    except (OSError, ValueError):
+        pass
+    return ("北京", "上海", "广州", "深圳", "成都", "杭州", "南京", "重庆", "武汉", "西安")
+
+
+PREFER_CITIES = _load_priority_cities()
 
 
 # ═══════════════════════════════════════════════════════════════ 数据模型

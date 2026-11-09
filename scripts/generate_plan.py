@@ -13,9 +13,7 @@ profile.json 格式见 --help 或 references/travel_api.md
 
 import argparse
 import json
-import os
 import re
-import sys
 from datetime import date, timedelta
 from pathlib import Path
 from typing import Optional
@@ -90,30 +88,107 @@ def format_price_context(price_data: dict, city: str) -> str:
     return "\n".join(lines)
 
 
-# ─── 从 references/cities_attractions.md 加载多城市景点库 ─────────────────────
-# 脚本不再只支持上海：README/SKILL 承诺的五城（郴州/长沙/衡阳/上海等）景点
-# 都在这份 md 里，这里把它们解析成与内置库相同结构的 dict。
+# ─── 参考数据注册表（references/travel_data.json） ──────────────────────────
+# 城市注册表：别名、地铁覆盖、数据来源、核实状态、风格类别词表。
+# 新增城市只改数据文件，不用改脚本 —— 规范见 references/data_schema.md。
+
+REFS_DIR = Path(__file__).resolve().parent.parent / "references"
+REGISTRY_PATH = REFS_DIR / "travel_data.json"
 
 _KNOWN_CITY_RE = re.compile(r"^[\u4e00-\u9fff]{2,4}$")
 
-# 口语/流域别名 -> 结构化景点库的城市 key
-_CITY_ALIASES = {
-    "丹东": ["鸭绿江", "鸭绿江流域", "中朝边境"],
-}
+
+_REGISTRY_CACHE: Optional[dict] = None
 
 
-def _parse_ticket(text: str) -> float:
-    """门票列 -> 价格。
+def load_registry(refresh: bool = False) -> dict:
+    """读取 references/travel_data.json（城市注册表）。读不到返回空 dict。"""
+    global _REGISTRY_CACHE
+    if _REGISTRY_CACHE is not None and not refresh:
+        return _REGISTRY_CACHE
+    try:
+        with open(REGISTRY_PATH, "r", encoding="utf-8") as fh:
+            _REGISTRY_CACHE = json.load(fh)
+    except (OSError, ValueError):
+        _REGISTRY_CACHE = {}
+    return _REGISTRY_CACHE
+
+
+def registry_cities() -> dict:
+    return load_registry().get("cities", {}) or {}
+
+
+def style_categories() -> dict:
+    """风格 -> 类别关键词表（数据驱动；注册表缺失时用内置默认值）。"""
+    data = load_registry().get("style_categories")
+    if data:
+        return data
+    return dict(DEFAULT_STYLE_CATEGORIES)
+
+
+def city_has_metro(city: str) -> bool:
+    """该城市是否有地铁（决定行程里写「地铁/打车」还是「公交/打车」）。"""
+    info = registry_cities().get(city, {})
+    if "metro" in info:
+        return bool(info["metro"])
+    return False
+
+
+def category_is_matched(category: str, styles: Optional[list] = None) -> bool:
+    """这个类别能不能被任一风格命中（校验器用）。
+
+    命中不了说明类别词表缺关键词 —— 提示补 travel_data.json 的 style_categories。
+    """
+    if not category:
+        return False
+    table = style_categories()
+    styles = styles if styles is not None else list(table.keys())
+    segments = [s.strip() for s in category.split("/") if s.strip()]
+    for style in styles:
+        for keyword in table.get(style, []):
+            if not keyword:
+                continue
+            if keyword == category:
+                return True
+            if any(keyword == seg or keyword in seg or seg in keyword
+                   for seg in segments):
+                return True
+    return False
+
+
+def resolve_city_key(city: str, known: Optional[list] = None) -> Optional[str]:
+    """用户输入 -> 注册表里的城市 key（含别名/区域名）。"""
+    city = (city or "").strip()
+    if not city:
+        return None
+    registry = registry_cities()
+    if city in registry:
+        return city
+    for key, info in registry.items():
+        aliases = [key] + list(info.get("aliases") or [])
+        if city in aliases:
+            return key
+    if known:
+        for key in known:
+            if key in city or city in key:
+                return key
+    return None
+
+
+def _parse_ticket(text: str) -> Optional[float]:
+    """门票列 -> 价格；**未知返回 None**（不是 0，避免把「未知」说成「免费」）。
 
     '免费' / '免费（小火车20)' -> 0；'40（学生20）' -> 40；'150-298' -> 150；
-    '5（缆车单程25）' -> 5。
+    '5（缆车单程25）' -> 5；'待核实' / '—' -> None（未知）。
     """
     text = (text or "").strip()
-    if not text or text in ("—", "-", "免费"):
+    if not text or text in ("待核实", "未知", "—", "-"):
+        return None
+    if text == "免费":
         return 0.0
     m = re.search(r"(\d+(?:\.\d+)?)", text)
     if not m:
-        return 0.0
+        return None
     # 「免费（小火车20)」这种：免费出现在数字前，说明景点本身免费，附加项才收费
     if "免费" in text[:m.start()]:
         return 0.0
@@ -191,8 +266,12 @@ def _parse_attraction_table(section: str) -> list:
 
 
 def load_attractions_from_md() -> dict:
-    """解析 references/cities_attractions.md -> {城市: [景点dict, ...]}。"""
-    md_path = Path(__file__).resolve().parent.parent / "references" / "cities_attractions.md"
+    """解析 references/cities_attractions.md -> {城市: [景点dict, ...]}。
+
+    额外返回 ``_food_tips``：{城市: {必吃/早餐/午餐/晚餐: 文案}}，
+    来自 md 里的 ``**<城市名>必吃：**`` / ``**<城市名>早餐：**`` 这类行。
+    """
+    md_path = REFS_DIR / "cities_attractions.md"
     if not md_path.exists():
         return {}
     try:
@@ -211,136 +290,33 @@ def load_attractions_from_md() -> dict:
         attractions = _parse_attraction_table(section)
         if attractions:
             result[city_name] = attractions
-        # 「XX必吃：」一行作为城市美食提示
-        fm = re.search(r"\*\*([^*]+?)必吃：\*\*\s*(.+)", section)
-        if fm:
-            food_tips[city_name] = fm.group(2).strip()
+        # 「<城市名>必吃：」/「<城市名>早餐：」这类行 -> 餐饮提示
+        for fm in re.finditer(r"\*\*([^*\n]{0,16}?)(必吃|早餐|午餐|晚餐)：\*\*\s*(.+)",
+                              section):
+            prefix, meal, value = fm.group(1).strip(), fm.group(2), fm.group(3).strip()
+            if prefix.endswith(city_name):
+                prefix = prefix[: -len(city_name)].strip()
+            if prefix:            # 前缀还有别的字，说明不是本城市，忽略
+                continue
+            food_tips.setdefault(city_name, {})[meal] = value
     if food_tips:
         result["_food_tips"] = food_tips
     return result
 
 
-# ─── 内置上海景点库 ────────────────────────────────────────────────────────────
-SHANGHAI_ATTRACTIONS = [
-    {
-        "id": 1, "name": "外滩", "category": "文化", "district": "黄浦区",
-        "avg_duration_h": 2.0, "ticket_price": 0, "rating": 4.8,
-        "crowd_level": "high", "tags": ["必去", "夜景", "免费"],
-        "best_time": "傍晚/夜晚", "priority": 10,
-        "tips": "建议傍晚 18:30 后前往，灯光秀最美。",
-        "description": "上海最具标志性的历史街区，可欣赏浦东天际线。"
-    },
-    {
-        "id": 2, "name": "东方明珠塔", "category": "地标", "district": "浦东新区",
-        "avg_duration_h": 2.0, "ticket_price": 189, "rating": 4.5,
-        "crowd_level": "high", "tags": ["地标", "观光台"],
-        "best_time": "白天/夜晚", "priority": 9,
-        "tips": "建议提前网上购票，节假日排队超长。",
-        "description": "上海地标性观光塔，登顶可俯瞰全城。"
-    },
-    {
-        "id": 3, "name": "豫园", "category": "文化", "district": "黄浦区",
-        "avg_duration_h": 2.5, "ticket_price": 40, "rating": 4.6,
-        "crowd_level": "high", "tags": ["历史", "园林", "购物"],
-        "best_time": "上午", "priority": 9,
-        "tips": "建议上午 9 点开门即入园，人少体验更好。",
-        "description": "明代古典园林，周边城隍庙小吃街值得一逛。"
-    },
-    {
-        "id": 4, "name": "田子坊", "category": "文化", "district": "黄浦区",
-        "avg_duration_h": 1.5, "ticket_price": 0, "rating": 4.4,
-        "crowd_level": "mid", "tags": ["文艺", "购物", "免费"],
-        "best_time": "下午", "priority": 8,
-        "tips": "弄堂里有很多特色小店和咖啡馆，适合下午闲逛。",
-        "description": "石库门弄堂改造的文创街区。"
-    },
-    {
-        "id": 5, "name": "新天地", "category": "购物", "district": "黄浦区",
-        "avg_duration_h": 2.0, "ticket_price": 0, "rating": 4.3,
-        "crowd_level": "mid", "tags": ["购物", "餐饮", "夜生活"],
-        "best_time": "晚上", "priority": 8,
-        "tips": "餐厅均价偏高，晚餐预算 150+/人。",
-        "description": "融合石库门建筑与现代商业的时尚街区。"
-    },
-    {
-        "id": 6, "name": "上海博物馆", "category": "文化", "district": "黄浦区",
-        "avg_duration_h": 3.0, "ticket_price": 0, "rating": 4.7,
-        "crowd_level": "mid", "tags": ["历史", "艺术", "免费"],
-        "best_time": "上午", "priority": 8,
-        "tips": "需提前在官网预约，免费参观。",
-        "description": "中国顶级历史艺术博物馆，青铜器、陶瓷馆尤为精彩。"
-    },
-    {
-        "id": 7, "name": "迪士尼乐园", "category": "亲子", "district": "浦东新区",
-        "avg_duration_h": 10.0, "ticket_price": 535, "rating": 4.9,
-        "crowd_level": "high", "tags": ["亲子", "主题乐园"],
-        "best_time": "全天", "priority": 10,
-        "tips": "需单独一整天，建议提前网上购票并提前 30 分钟入园。",
-        "description": "中国最大的迪士尼主题乐园。",
-        "requires_full_day": True
-    },
-    {
-        "id": 8, "name": "朱家角古镇", "category": "文化", "district": "青浦区",
-        "avg_duration_h": 4.0, "ticket_price": 0, "rating": 4.5,
-        "crowd_level": "mid", "tags": ["古镇", "水乡", "免费"],
-        "best_time": "上午", "priority": 7,
-        "tips": "距市区约 1 小时，来回交通时间较长，建议半天以上。",
-        "description": "上海郊区江南水乡古镇。",
-        "far_from_center": True
-    },
-    {
-        "id": 9, "name": "南京路步行街", "category": "购物", "district": "黄浦区",
-        "avg_duration_h": 2.0, "ticket_price": 0, "rating": 4.2,
-        "crowd_level": "high", "tags": ["购物", "免费"],
-        "best_time": "下午/晚上", "priority": 7,
-        "tips": "购物为主，餐饮可选择旁边的云南路美食街。",
-        "description": "中国最著名的商业步行街之一。"
-    },
-    {
-        "id": 10, "name": "上海科技馆", "category": "亲子", "district": "浦东新区",
-        "avg_duration_h": 3.0, "ticket_price": 60, "rating": 4.6,
-        "crowd_level": "mid", "tags": ["科技", "亲子"],
-        "best_time": "上午", "priority": 7,
-        "tips": "适合亲子游，节假日提前预约。",
-        "description": "国家级科技类博物馆，展品丰富互动性强。"
-    },
-    {
-        "id": 11, "name": "武康路", "category": "文化", "district": "徐汇区",
-        "avg_duration_h": 1.5, "ticket_price": 0, "rating": 4.4,
-        "crowd_level": "mid", "tags": ["网红", "建筑", "免费"],
-        "best_time": "上午/下午", "priority": 7,
-        "tips": "适合拍照打卡，法式梧桐大道，秋天最美。",
-        "description": "上海最美历史风貌道路，咖啡馆众多。"
-    },
-    {
-        "id": 12, "name": "上海自然博物馆", "category": "亲子", "district": "静安区",
-        "avg_duration_h": 3.0, "ticket_price": 55, "rating": 4.7,
-        "crowd_level": "mid", "tags": ["科普", "亲子"],
-        "best_time": "上午", "priority": 7,
-        "tips": "恐龙化石展非常震撼，需提前预约。",
-        "description": "亚洲规模最大的自然博物馆之一。"
-    },
-    {
-        "id": 13, "name": "思南公馆", "category": "文化", "district": "黄浦区",
-        "avg_duration_h": 1.5, "ticket_price": 0, "rating": 4.3,
-        "crowd_level": "low", "tags": ["文艺", "建筑", "免费"],
-        "best_time": "下午", "priority": 6,
-        "tips": "安静的历史建筑群，附近有很多精品餐厅。",
-        "description": "上海历史最悠久的独栋花园住宅群。"
-    },
-]
-
 # ─── 旅行风格 → 景点类别偏好映射 ─────────────────────────────────────────────
-STYLE_CATEGORY_MAP = {
+# 首选 references/travel_data.json 的 style_categories（数据驱动，可随数据一起扩展）；
+# 这里只是注册表缺失时的兜底默认值。
+DEFAULT_STYLE_CATEGORIES = {
     "文化": ["文化", "地标"],
-    "美食": [],  # 不过滤，通过 meal tip 体现
+    "美食": [],          # 不过滤，通过 meal tip 体现
     "购物": ["购物"],
     "亲子": ["亲子"],
     "自然": ["自然"],
-    "夜景": ["文化", "地标"],  # 夜景景点通过 tags 筛选
+    "夜景": ["文化", "地标"],
     "历史": ["文化"],
     "艺术": ["文化"],
-    "网红打卡": [],  # 通过 tags 筛选
+    "网红打卡": [],
 }
 
 # ─── 预算档次 → 日均消费参考 ─────────────────────────────────────────────────
@@ -348,6 +324,16 @@ BUDGET_DAILY = {"budget": 300, "mid": 700, "luxury": 1500}
 
 # ─── 体力档次 → 每天最多景点数 ──────────────────────────────────────────────
 MOBILITY_MAX_ITEMS = {"high": 4, "mid": 3, "low": 2}
+
+# 游玩时长 >= 该值（小时）视为「整天级」景点：迪士尼、长隆、莽山这类
+FULL_DAY_HOURS = 8.0
+
+# ─── 餐食兜底文案（城市级餐饮提示走数据，见 load_food_tips） ─────────────────
+DEFAULT_MEAL_TIPS = {
+    "早餐": "附近早餐店 / 便利店",
+    "午餐": "就近餐厅",
+    "晚餐": "当地特色餐厅",
+}
 
 
 class TravelPlanner:
@@ -376,6 +362,10 @@ class TravelPlanner:
         self.avoid_crowded = profile.get("options", {}).get("avoid_crowded", False)
         self.prefer_free = profile.get("options", {}).get("prefer_free", False)
         self.include_disney = profile.get("options", {}).get("include_disney", False)
+        # 「整天级景点」开关（include_disney 是旧名，保持兼容）
+        self.include_full_day = bool(
+            profile.get("options", {}).get("include_full_day", self.include_disney)
+        )
 
         # 景点库：优先解析 references/cities_attractions.md 里的多城市数据，
         # 解析不到再退回内置上海库。
@@ -384,37 +374,32 @@ class TravelPlanner:
         self._food_tips = self._md_data.get("_food_tips", {})
         self._attractions = self._pick_attractions(md_attractions)
         if not self._attractions:
+            available = sorted(set(list(md_attractions) + list(registry_cities())))
             print(f"⚠️  暂未内置「{self.city}」的景点库; 可用城市: "
-                  f"{'、'.join(md_attractions) or '上海'}")
+                  f"{'、'.join(available) or '（无）'}")
 
     def _pick_attractions(self, md_attractions: dict) -> list:
-        """按城市选择景点库：精确 -> 别名 -> 包含 -> 内置上海兜底。"""
+        """按城市选择景点库：精确 -> 注册表别名 -> 包含匹配。
+
+        全部走数据（travel_data.json 的 aliases），加城市不用改代码。
+        """
         city = (self.city or "").strip()
         if city in md_attractions:
             return md_attractions[city]
-        if city == "上海":
-            return SHANGHAI_ATTRACTIONS
-        # 别名：如「鸭绿江/鸭绿江流域/中朝边境」-> 丹东
-        for key, aliases in _CITY_ALIASES.items():
-            if city == key or city in aliases:
-                return md_attractions.get(key, [])
-        for key in md_attractions:
-            if key in city or city in key:
-                return md_attractions[key]
+        key = resolve_city_key(city, known=list(md_attractions))
+        if key and key in md_attractions:
+            return md_attractions[key]
+        for name in md_attractions:
+            if name in city or city in name:
+                return md_attractions[name]
         return []
 
     # ── 景点评分 ──────────────────────────────────────────────────────────────
     def _score_attraction(self, a: dict) -> float:
         score = a["priority"] * 1.0
 
-        # 风格匹配加分
-        preferred_cats = set()
-        for s in self.styles:
-            preferred_cats.update(STYLE_CATEGORY_MAP.get(s, []))
-        if a["category"] in preferred_cats:
-            score += 2
-        elif any(cat and cat in a["category"] for cat in preferred_cats):
-            # 兼容「自然/湖泊」「溶洞/奇观」这类细分类别：包含即算匹配
+        # 风格匹配加分（类别关键词表来自数据，可随数据扩展）
+        if self._category_matches(a.get("category", "")):
             score += 2
 
         # 标签匹配
@@ -422,21 +407,44 @@ class TravelPlanner:
             if s in a.get("tags", []):
                 score += 1
 
-        # 预算限制
-        if self.prefer_free and a["ticket_price"] > 0:
-            score -= 3
-        if self.budget_level == "budget" and a["ticket_price"] > 100:
-            score -= 2
+        # 预算限制（票价未知(None)时不参与惩罚，也不当作免费）
+        ticket = a.get("ticket_price")
+        if ticket is not None:
+            if self.prefer_free and ticket > 0:
+                score -= 3
+            if self.budget_level == "budget" and ticket > 100:
+                score -= 2
 
         # 人流量偏好
-        if self.avoid_crowded and a["crowd_level"] == "high":
+        if self.avoid_crowded and a.get("crowd_level") == "high":
             score -= 2
 
         # 亲子家庭加分
-        if self.group_type == "family" and a["category"] == "亲子":
+        if self.group_type == "family" and "亲子" in (a.get("category") or ""):
             score += 2
 
         return score
+
+    def _category_matches(self, category: str) -> bool:
+        """景点类别是否命中用户风格。
+
+        类别写法是「主类/子类」（如 `自然/湖泊`），按整串 + 各分段做**双向子串匹配**，
+        关键词表来自 travel_data.json，新增城市/子类无需改代码。
+        """
+        if not category:
+            return False
+        table = style_categories()
+        segments = [s.strip() for s in category.split("/") if s.strip()]
+        for style in self.styles:
+            for keyword in table.get(style, []):
+                if not keyword:
+                    continue
+                if keyword == category:
+                    return True
+                if any(keyword == seg or keyword in seg or seg in keyword
+                       for seg in segments):
+                    return True
+        return False
 
     # ── 筛选和排序可去景点 ────────────────────────────────────────────────────
     def _select_attractions(self):
@@ -444,18 +452,13 @@ class TravelPlanner:
         skipped = []
 
         for a in self._attractions:
-            # 迪士尼单独处理
-            if "迪士尼" in a["name"] and not self.include_disney:
+            # 「整天级」景点（时长 >= 8h，如迪士尼/长隆/莽山）单独处理
+            if a.get("avg_duration_h", 0) >= FULL_DAY_HOURS and not self.include_full_day:
                 if self.days < 2:
                     skipped.append({"name": a["name"], "reason": "需要单独一整天，行程天数不足"})
-                    continue
                 else:
-                    skipped.append({"name": a["name"], "reason": "需要单独一整天，如需游览请在选项中开启 include_disney"})
-                    continue
-
-            # 远郊景点（天数不足时跳过）
-            if a.get("far_from_center") and self.days <= 2:
-                skipped.append({"name": a["name"], "reason": f"距市区较远，{self.days}日行程时间紧张，不建议安排"})
+                    skipped.append({"name": a["name"],
+                                    "reason": "需要单独一整天，如需游览请在选项中开启 include_full_day"})
                 continue
 
             score = self._score_attraction(a)
@@ -490,7 +493,7 @@ class TravelPlanner:
 
             items = []
             current_time_h = int(self.daily_start.split(":")[0])
-            has_metro = self.city == "上海"
+            has_metro = city_has_metro(self.city)
 
             for i, a in enumerate(day_attractions):
                 visit_time = f"{current_time_h:02d}:00"
@@ -541,37 +544,18 @@ class TravelPlanner:
         return f"{'、'.join(districts[:2])}联游 · {names}等"
 
     def _meal_tip(self, meal: str, district: str) -> str:
-        tips = {
-            "黄浦区": {
-                "早餐": "城隍庙南翔馒头店 / 附近便利店",
-                "午餐": "老正兴（本帮菜）/ 小南国",
-                "晚餐": "外滩附近滨江餐厅，可边吃边看夜景"
-            },
-            "浦东新区": {
-                "早餐": "正大广场附近早餐店",
-                "午餐": "国金中心商场美食广场",
-                "晚餐": "陆家嘴餐厅（预算较高）"
-            },
-            "徐汇区": {
-                "早餐": "武康路附近咖啡馆",
-                "午餐": "衡山路沿线餐厅",
-                "晚餐": "天平路美食街"
-            },
-            "静安区": {
-                "早餐": "南京西路早餐店",
-                "午餐": "久光百货美食楼",
-                "晚餐": "静安寺附近特色餐厅"
-            },
-        }
-        default = {"早餐": "附近酒店早餐或便利店", "午餐": "就近餐厅", "晚餐": "当地特色餐厅"}
-        if meal == "晚餐":
-            city_food = self._food_tips.get(self.city)
-            if city_food:
-                return f"{city_food}（详见 references/food_guide.md）"
-        return tips.get(district, default).get(meal, "就近选择")
+        """餐饮提示：全部走数据（md 里的 `<城市名>必吃/早餐/午餐/晚餐` 行），没有就兜底。"""
+        tips = self._food_tips.get(self.city) or {}
+        if meal in tips:
+            return tips[meal]
+        if meal == "晚餐" and "必吃" in tips:
+            return f"{tips['必吃']}（详见 references/food_guide.md）"
+        return DEFAULT_MEAL_TIPS.get(meal, "就近选择")
 
     def _day_budget(self, attractions: list) -> float:
-        ticket = sum(a["ticket_price"] for a in attractions)
+        # 票价未知的景点不计入（不编数字，也不当作免费）
+        ticket = sum(a["ticket_price"] for a in attractions
+                     if a.get("ticket_price") is not None)
         meal = BUDGET_DAILY[self.budget_level] * 0.35  # 餐饮占 35%
         transport = 80
         shopping = BUDGET_DAILY[self.budget_level] * 0.2
@@ -735,7 +719,7 @@ class ItineraryItem(BaseModel):
     name: str
     visit_time: Optional[str]
     duration_h: float
-    est_cost: float
+    est_cost: Optional[float]
     transport_to: str
     tips: str
 
@@ -842,7 +826,11 @@ def print_plan(plan: dict):
         print(f"{'─'*60}")
         print(f"  🍳 早餐: {day['breakfast_tip']}")
         for item in day["items"]:
-            cost_str = f"¥{item['est_cost']:.0f}" if item["est_cost"] > 0 else "免费"
+            cost = item["est_cost"]
+            if cost is None:
+                cost_str = "票价待核实"
+            else:
+                cost_str = f"¥{cost:.0f}" if cost > 0 else "免费"
             print(f"  {item['seq']}. [{item['visit_time']}] {item['name']} ({item['duration_h']}h, {cost_str})")
             print(f"     🚇 {item['transport_to']}")
             if item.get("tips"):

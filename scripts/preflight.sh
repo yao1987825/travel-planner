@@ -156,6 +156,26 @@ for f in mygolbs_cities.json bus_cities.json districts.json weather_cities.json;
     bad "references/${f} 缺失 —— 重新安装本技能"
   fi
 done
+for f in travel_data.json data_schema.md; do
+  if [[ -f "${SKILL_DIR}/references/${f}" ]]; then
+    ok "references/${f}"
+  else
+    warn "references/${f} 缺失(数据规范文件, 不影响运行)"
+  fi
+done
+
+# 参考数据规范校验（格式/来源/重复项/非法票价）
+if [[ -f "${HERE}/validate_data.py" ]]; then
+  _v="$(timeout 60 python3 "${HERE}/validate_data.py" 2>&1)"
+  if printf '%s' "$_v" | grep -q '数据校验通过'; then
+    ok "参考数据符合规范(references/data_schema.md)"
+  else
+    warn "参考数据有问题(见下):"
+    printf '%s\n' "$_v" | grep -E '✗|!' | sed 's/^/      /' | head -12
+  fi
+else
+  warn "缺少 scripts/validate_data.py"
+fi
 
 echo
 echo "== 8. 默认城市 =="

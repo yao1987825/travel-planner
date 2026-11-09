@@ -7,8 +7,6 @@
 
 from __future__ import annotations
 
-import json
-import os
 import subprocess
 import sys
 from pathlib import Path
@@ -73,8 +71,32 @@ def test_offline() -> None:
     check("丹东含断桥", any(a["name"] == "鸭绿江断桥" for a in md["丹东"]))
     check("门票解析免费", generate_plan._parse_ticket("免费（小火车20)") == 0.0)
     check("门票解析付费", generate_plan._parse_ticket("40（学生20）") == 40.0)
+    check("门票待核实=未知", generate_plan._parse_ticket("待核实") is None)
     check("时长解析", generate_plan._parse_duration("3-4h") == 3.5)
     check("时长半天", generate_plan._parse_duration("半天-1天") == 5.0)
+
+    print("[离线] 城市注册表与别名")
+    registry = generate_plan.registry_cities()
+    check("注册表含丹东", "丹东" in registry)
+    check("注册表含来源", bool(registry.get("丹东", {}).get("attractions_source")))
+    check("注册表含核实年份", bool(registry.get("丹东", {}).get("verified")))
+    check("鸭绿江别名->丹东",
+          generate_plan.resolve_city_key("鸭绿江") == "丹东")
+    check("地铁覆盖可查", generate_plan.city_has_metro("上海") is True)
+    check("非地铁城市", generate_plan.city_has_metro("郴州") is False)
+    check("类别匹配历史", generate_plan.category_is_matched("历史文化"))
+    check("类别匹配自然细分", generate_plan.category_is_matched("自然/湖泊"))
+
+    print("[离线] 数据规范校验器")
+    import contextlib
+    import io as _io
+
+    import validate_data
+
+    buf = _io.StringIO()
+    with contextlib.redirect_stdout(buf):
+        rc = validate_data.main([])
+    check("validate_data 无 error", rc == 0, buf.getvalue()[-400:])
 
 
 def test_metro() -> None:
