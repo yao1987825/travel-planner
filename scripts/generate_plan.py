@@ -404,6 +404,9 @@ class TravelPlanner:
             preferred_cats.update(STYLE_CATEGORY_MAP.get(s, []))
         if a["category"] in preferred_cats:
             score += 2
+        elif any(cat and cat in a["category"] for cat in preferred_cats):
+            # 兼容「自然/湖泊」「溶洞/奇观」这类细分类别：包含即算匹配
+            score += 2
 
         # 标签匹配
         for s in self.styles:
