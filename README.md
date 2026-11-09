@@ -74,7 +74,7 @@ python3 scripts/weather_query.py live 郴州
 | 清远 | 12个 | 古龙峡漂流、连州地下河、千年瑶寨、英西峰林 |
 
 > `generate_plan.py` 的景点库直接解析 `references/cities_attractions.md`，
-> 覆盖郴州/长沙/衡阳/上海（及广州）；清远攻略见 `references/xiaohongshu_qingyuan.md`。
+> 覆盖郴州/长沙/衡阳/上海/清远（及广州）；清远详细攻略另见 `references/xiaohongshu_qingyuan.md`。
 > 美食手册另含广州数据（早茶/粤菜/肠粉等）
 > **地铁**覆盖 55 城；**公交**覆盖全国（掌上公交 579 城/县 + 车来了 320 城），默认城市郴州市。
 

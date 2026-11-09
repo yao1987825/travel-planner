@@ -116,9 +116,13 @@ def _parse_ticket(text: str) -> float:
 
 
 def _parse_duration(text: str) -> float:
-    """游玩时长列 -> 小时。'3-4h' -> 3.5；'1-2天' -> 8；'半天-1天' -> 8；'全天' -> 8。"""
+    """游玩时长列 -> 小时。'3-4h' -> 3.5；'半天' -> 4；'半天-1天' -> 5；'1-2天'/'全天' -> 8。"""
     text = (text or "").strip()
     if "天" in text:
+        if text == "半天":
+            return 4.0
+        if text.startswith("半天"):
+            return 5.0
         return 8.0
     nums = [float(x) for x in re.findall(r"\d+(?:\.\d+)?", text)]
     if not nums:
@@ -460,10 +464,11 @@ class TravelPlanner:
         depart = date.fromisoformat(self.depart_date)
         days_out = []
 
-        # 按区域分组（简化版：前半段黄浦/静安，后半段浦东/其他）
-        central = [a for a in selected if a["district"] in ("黄浦区", "静安区", "徐汇区")]
-        others  = [a for a in selected if a not in central]
-        ordered = central + others
+        # 按区域分组：同区域的景点尽量排在同一天，减少跨区奔波（通用逻辑，不限上海）
+        groups: "dict[str, list]" = {}
+        for a in selected:
+            groups.setdefault(a["district"] or "市区", []).append(a)
+        ordered = [a for group in groups.values() for a in group]
 
         idx = 0
         for d in range(self.days):
@@ -517,10 +522,11 @@ class TravelPlanner:
     def _day_theme(self, attractions: list, day_idx: int) -> str:
         if not attractions:
             return f"第{day_idx+1}天自由活动"
-        districts = [a["district"] for a in attractions]
-        main = max(set(districts), key=districts.count) if districts else "市区"
+        districts = sorted({a["district"] for a in attractions if a["district"]})
         names = "、".join(a["name"] for a in attractions[:2])
-        return f"{main}精华游 · {names}等"
+        if len(districts) == 1:
+            return f"{districts[0]}精华游 · {names}等"
+        return f"{'、'.join(districts[:2])}联游 · {names}等"
 
     def _meal_tip(self, meal: str, district: str) -> str:
         tips = {
