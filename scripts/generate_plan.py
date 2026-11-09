@@ -96,6 +96,11 @@ def format_price_context(price_data: dict, city: str) -> str:
 
 _KNOWN_CITY_RE = re.compile(r"^[\u4e00-\u9fff]{2,4}$")
 
+# 口语/流域别名 -> 结构化景点库的城市 key
+_CITY_ALIASES = {
+    "丹东": ["鸭绿江", "鸭绿江流域", "中朝边境"],
+}
+
 
 def _parse_ticket(text: str) -> float:
     """门票列 -> 价格。
@@ -383,12 +388,16 @@ class TravelPlanner:
                   f"{'、'.join(md_attractions) or '上海'}")
 
     def _pick_attractions(self, md_attractions: dict) -> list:
-        """按城市选择景点库：精确 -> 包含 -> 内置上海兜底。"""
+        """按城市选择景点库：精确 -> 别名 -> 包含 -> 内置上海兜底。"""
         city = (self.city or "").strip()
         if city in md_attractions:
             return md_attractions[city]
         if city == "上海":
             return SHANGHAI_ATTRACTIONS
+        # 别名：如「鸭绿江/鸭绿江流域/中朝边境」-> 丹东
+        for key, aliases in _CITY_ALIASES.items():
+            if city == key or city in aliases:
+                return md_attractions.get(key, [])
         for key in md_attractions:
             if key in city or city in key:
                 return md_attractions[key]

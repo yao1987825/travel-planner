@@ -184,8 +184,8 @@ python3 scripts/train_cli.py 郴州 长沙 明天
 python3 scripts/generate_plan.py --profile profile.json --output ./trip
 ```
 
-> 景点库直接解析 `references/cities_attractions.md`，覆盖郴州/长沙/衡阳/上海/清远（及广州）；
-> 清远详细攻略另见 `references/xiaohongshu_qingyuan.md`。
+> 景点库直接解析 `references/cities_attractions.md`，覆盖郴州/长沙/衡阳/上海/清远/丹东（及广州）；
+> 「鸭绿江/鸭绿江流域/中朝边境」会自动映射到丹东。清远详细攻略另见 `references/xiaohongshu_qingyuan.md`。
 > 城市不在上述列表时脚本会明确提示，不会生成「自由活动」空行程糊弄用户。
 
 `profile.json`：

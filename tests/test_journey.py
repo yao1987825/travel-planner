@@ -69,6 +69,8 @@ def test_offline() -> None:
     check("清远含古龙峡", any(a["name"] == "古龙峡" for a in md["清远"]))
     check("清远含桃花湖", any(a["name"] == "桃花湖" for a in md["清远"]))
     check("清远含免费景点", any(a["ticket_price"] == 0 for a in md["清远"]))
+    check("景点库含丹东", "丹东" in md and len(md["丹东"]) >= 5)
+    check("丹东含断桥", any(a["name"] == "鸭绿江断桥" for a in md["丹东"]))
     check("门票解析免费", generate_plan._parse_ticket("免费（小火车20)") == 0.0)
     check("门票解析付费", generate_plan._parse_ticket("40（学生20）") == 40.0)
     check("时长解析", generate_plan._parse_duration("3-4h") == 3.5)
