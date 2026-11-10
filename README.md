@@ -215,19 +215,18 @@ python3 scripts/fetch_images.py index --city 郴州
 python3 scripts/fetch_images.py manifest
 # 3) 或让脚本自动下载到 images/<城市>/
 python3 scripts/fetch_images.py download --limit 999
-# 4) 把景点表「图片」列换成 GitHub raw 链接（默认带 gh-proxy 代理前缀）
+# 4) 把景点表「图片」列换成 GitHub raw 链接（不加代理）
 python3 scripts/fetch_images.py github-url
 ```
 
-图片放到 `images/<城市>/<景点名>.jpg` 后，对应的展示链接就会生效：
+图片放到 `images/<城市>/<景点名>.jpg` 并提交后，展示链接就是官方 raw 地址：
 
 ```
-https://gh-proxy.com/https://raw.githubusercontent.com/yao1987825/travel-planner/main/images/丹东/鸭绿江断桥.jpg
+https://raw.githubusercontent.com/yao1987825/travel-planner/main/images/丹东/鸭绿江断桥.jpg
 ```
 
-- **图片二进制默认不入库**（体积大、版权归原站），仓库提交的是索引
-  （`references/image_index.json`，含 `source`/`page`/`raw_url`）和景点表里的图片链接；
-  想让 raw 链接直接可用，把 `.gitignore` 里 `images/*/*.jpg` 那几行删掉再提交图片即可；
+- **图片随仓库提交（图库模式）**：图片放到 `images/<城市>/<景点>.jpg` 后 commit+push，
+  官方 raw 链接就直接可用；索引（`references/image_index.json`）保留 `source`/`page` 溯源；
 - 景点表「图片」列 `![景点名](URL)` 会随行程输出，并产出 `travel_gallery.md` 图集
   （含图片来源溯源）。
 

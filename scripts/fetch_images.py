@@ -43,9 +43,10 @@ INDEX_PATH = REFS / "image_index.json"
 # 图片下载到仓库顶层的 images/，随 git 提交后用 GitHub raw 链接展示。
 IMAGE_DIR = ROOT / "images"
 
-# GitHub raw 链接默认值（可用 --repo / --branch 覆盖）
+# GitHub raw 链接默认值（可用 --repo / --branch / --proxy 覆盖）
+# 默认**不加代理**：代理中转（gh-proxy 等）不稳定，直接用官方 raw 域名即可。
 GITHUB_RAW = "https://raw.githubusercontent.com"
-DEFAULT_PROXY = "https://gh-proxy.com/"
+DEFAULT_PROXY = ""
 
 sys.path.insert(0, HERE)
 import generate_plan  # noqa: E402
@@ -514,7 +515,7 @@ def main(argv=None) -> int:
     p.add_argument("--repo", default="", help="GitHub 仓库 owner/repo，默认从 git remote 推断")
     p.add_argument("--branch", default="main", help="分支名，默认 main")
     p.add_argument("--proxy", default=DEFAULT_PROXY,
-                   help="raw 链接代理前缀（默认 gh-proxy.com，不需要传空串）")
+                   help="raw 链接代理前缀（默认不加代理；需要时如 https://gh-proxy.com/）")
     p.set_defaults(func=cmd_github_url)
 
     p = sub.add_parser("manifest", help="打印图片应放位置的清单（手动补图用）")

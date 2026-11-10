@@ -7,11 +7,7 @@
 https://raw.githubusercontent.com/yao1987825/travel-planner/main/images/丹东/鸭绿江断桥.jpg
 ```
 
-国内访问 raw 不稳定时，展示链接带代理前缀（`fetch_images.py github-url` 默认就会加）：
-
-```
-https://gh-proxy.com/https://raw.githubusercontent.com/yao1987825/travel-planner/main/images/丹东/鸭绿江断桥.jpg
-```
+（不再默认加代理 —— 代理中转不稳定。需要时可用 `--proxy https://gh-proxy.com/` 生成带前缀的链接。）
 
 ## 我该放哪些文件？先看清单
 
@@ -54,13 +50,17 @@ python3 scripts/fetch_images.py download --city 丹东 --limit 3
 python3 scripts/fetch_images.py github-url                   # 把景点表图片列换成 raw 链接
 ```
 
-## 图片二进制默认不入库
+## 图片二进制随仓库提交（图库模式）
 
-`.gitignore` 里排除了 `images/*/*.jpg` 等图片文件 —— 仓库只提交**索引**
-（`references/image_index.json`，含每张图的原始页面与来源站点）和景点表里的图片链接。
+`.gitignore` 已放开图片，`images/<城市>/<景点>.jpg` 会**随仓库一起提交**。
+提交后，景点表里的 GitHub raw 链接就直接可用（`main` 分支上能访问到文件）。
 
-如果决定把图片也提交进仓库（让 raw 链接直接可用），把 `.gitignore` 里那几行删掉再
-`git add images/` 即可。
+```bash
+git add images references/image_index.json references/cities_attractions.md
+git commit -m "data(images): 更新景点实景图"
+git push
+```
+
 
 ## 版权说明
 
