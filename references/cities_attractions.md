@@ -12,9 +12,9 @@
 | 景点 | 门票(元) | 游玩时长 | 区域 | 类别 | 省钱等级 | 必去指数 | 开放时间 | 小红书/博客核心评价 |
 |------|---------|---------|------|------|---------|---------|---------|---------------------|
 | 东江湖（雾漫小东江） | 85 | 3-4h | 资兴市 | 自然/水景 | 💰 | ★★★★★ | 6:00-18:00 | 晨雾奇观，5:30-8:00最佳观雾；全网公认郴州NO.1 | ![东江湖（雾漫小东江）](https://raw.githubusercontent.com/yao1987825/travel-planner/main/images/郴州/东江湖_雾漫小东江_.jpg) |
-| 高椅岭 | 95 | 4h | 资兴市 | 丹霞/徒步 | 💰 | ★★★★★ | 7:00-18:00 | 小红书网红打卡地，丹霞地貌+水面倒影，堪称"中国科罗拉多" | ![高椅岭](http://i5.szhomeimg.com/o/2024/02/26/0226082625168934.JPG) |
+| 高椅岭 | 95 | 4h | 资兴市 | 丹霞/徒步 | 💰 | ★★★★★ | 7:00-18:00 | 小红书网红打卡地，丹霞地貌+水面倒影，堪称"中国科罗拉多" | ![高椅岭](https://raw.githubusercontent.com/yao1987825/travel-planner/main/images/郴州/高椅岭.jpg) |
 | 仰天湖大草原 | 120 | 2-3h | 苏仙区 | 自然/草原 | 💰💰 | ★★★★☆ | 9:00-17:00 | 高山草甸，骑马拍照，避暑胜地；冬季可赏雪 | ![仰天湖大草原](https://raw.githubusercontent.com/yao1987825/travel-planner/main/images/郴州/仰天湖大草原.jpg) |
-| 莽山五指峰 | 280 | 全天 | 宜章县 | 森林/山岳 | 💰💰 | ★★★★☆ | 8:00-18:00 | 原始森林，云海雄奇，需一整天；距郴州市区约2h车程 | ![莽山五指峰](http://pic.vjshi.com/2021-06-05/619e5a7cb872b4a853a8b718bbdd7cb9/00003.jpg?x-oss-process=style/watermark) |
+| 莽山五指峰 | 280 | 全天 | 宜章县 | 森林/山岳 | 💰💰 | ★★★★☆ | 8:00-18:00 | 原始森林，云海雄奇，需一整天；距郴州市区约2h车程 | ![莽山五指峰](https://raw.githubusercontent.com/yao1987825/travel-planner/main/images/郴州/莽山五指峰.jpg) |
 | 万华岩 | 47 | 1-1.5h | 桂阳县 | 溶洞/漂流 | ⭐ | ★★★★☆ | 9:00-17:00 | 溶洞+地下河漂流，价格实惠，非常值回票价 | ![万华岩](https://raw.githubusercontent.com/yao1987825/travel-planner/main/images/郴州/万华岩.jpg) |
 | 板梁古村 | 35 | 2h | 桂阳县 | 历史古村 | ⭐ | ★★★★☆ | 全天 | 明清古建筑群，600年历史，适合亲子和摄影 | ![板梁古村](https://raw.githubusercontent.com/yao1987825/travel-planner/main/images/郴州/板梁古村.jpg) |
 | 飞天山丹霞 | 65 | 3h | 桂东县 | 丹霞/地质 | 💰 | ★★★★☆ | 8:30-18:00 | 丹霞+资江，适合自驾；船游体验极佳 | ![飞天山丹霞](https://raw.githubusercontent.com/yao1987825/travel-planner/main/images/郴州/飞天山丹霞.jpg) |
@@ -43,7 +43,7 @@
 | 岳麓山 | 免费（书院40） | 3-4h | 岳麓区 | 山地/文化 | ⭐ | ★★★★★ | 全天 | 从南门徒步上山全程免费，爱晚亭秋日最美 | ![岳麓山](https://raw.githubusercontent.com/yao1987825/travel-planner/main/images/长沙/岳麓山.jpg) |
 | 岳麓书院 | 40（学生20） | 1-1.5h | 岳麓区 | 历史文化 | ⭐ | ★★★★★ | 8:00-17:30 | 千年学府，9:00/10:30/14:00有免费讲解可跟听 | ![岳麓书院](https://raw.githubusercontent.com/yao1987825/travel-planner/main/images/长沙/岳麓书院.jpg) |
 | 湖南省博物馆 | 免费（需预约） | 2.5-3.5h | 开福区 | 历史文化 | ⭐ | ★★★★★ | 9:00-17:00 | 马王堆汉墓镇馆，全国顶级，提前7天公众号预约 | ![湖南省博物馆](https://raw.githubusercontent.com/yao1987825/travel-planner/main/images/长沙/湖南省博物馆.jpg) |
-| 太平老街 | 免费 | 1.5-2h | 天心区 | 历史/美食 | ⭐ | ★★★★★ | 全天 | 长沙最地道小吃聚集地，贾谊故居免费领票进 | ![太平老街](https://p2.itc.cn/images01/20220414/ec93821b02674dfcbc5ef41dd5188a1a.png) |
+| 太平老街 | 免费 | 1.5-2h | 天心区 | 历史/美食 | ⭐ | ★★★★★ | 全天 | 长沙最地道小吃聚集地，贾谊故居免费领票进 | ![太平老街](https://raw.githubusercontent.com/yao1987825/travel-planner/main/images/长沙/太平老街.jpg) |
 | 文和友（超级文和友） | 免费入场 | 2-3h | 天心区 | 网红/美食 | ⭐ | ★★★★☆ | 11:00-22:00 | 网红打卡地，入场免费，消费自选；龙虾单点60+/份 | ![文和友（超级文和友）](https://raw.githubusercontent.com/yao1987825/travel-planner/main/images/长沙/文和友_超级文和友_.jpg) |
 | 五一广场 | 免费 | 1-2h | 芙蓉区 | 商业/夜景 | ⭐ | ★★★★☆ | 全天 | 长沙最繁华商业广场，夜景灯光秀免费欣赏 | ![五一广场](https://raw.githubusercontent.com/yao1987825/travel-planner/main/images/长沙/五一广场.jpg) |
 | 天心阁 | 免费（古城墙10） | 1-1.5h | 天心区 | 历史古迹 | ⭐ | ★★★☆☆ | 8:30-17:30 | 长沙仅存古城墙，登城感受千年历史 | ![天心阁](https://raw.githubusercontent.com/yao1987825/travel-planner/main/images/长沙/天心阁.jpg) |
@@ -133,7 +133,7 @@
 | 南京路步行街 | 免费 | 2h | 黄浦区 | 商业购物 | ⭐ | ★★★★☆ | 全天 | 中国最著名商业街，旁边云南路美食街更实惠 | ![南京路步行街](https://raw.githubusercontent.com/yao1987825/travel-planner/main/images/上海/南京路步行街.jpg) |
 | 东方明珠塔 | 189-210 | 2h | 浦东新区 | 地标/观光 | 💰💰 | ★★★★☆ | 8:00-21:30 | 提前网购；可在花城广场免费仰望，性价比替代方案：陆家嘴滨江步道免费 | ![东方明珠塔](https://raw.githubusercontent.com/yao1987825/travel-planner/main/images/上海/东方明珠塔.jpg) |
 | 上海博物馆东馆（新馆） | 免费（需预约） | 2-3h | 浦东新区 | 历史艺术 | ⭐ | ★★★★☆ | 9:00-17:00 | 2024年新开放，展品更丰富，提前预约 | ![上海博物馆东馆（新馆）](https://raw.githubusercontent.com/yao1987825/travel-planner/main/images/上海/上海博物馆东馆_新馆_.jpg) |
-| 迪士尼乐园 | 475-675（季节) | 全天 | 浦东新区 | 主题乐园 | 💰💰 | ★★★★★ | 9:00-21:00 | 亲子必去；平日票较便宜，节假日溢价严重；单独安排一天 | ![迪士尼乐园](http://sh.tn8.net/u/cms/shzyx/201811/22201518qy89.jpg) |
+| 迪士尼乐园 | 475-675（季节) | 全天 | 浦东新区 | 主题乐园 | 💰💰 | ★★★★★ | 9:00-21:00 | 亲子必去；平日票较便宜，节假日溢价严重；单独安排一天 | ![迪士尼乐园](https://raw.githubusercontent.com/yao1987825/travel-planner/main/images/上海/迪士尼乐园.jpg) |
 | 朱家角古镇 | 免费（景点单独收费） | 3-4h | 青浦区 | 水乡古镇 | ⭐ | ★★★★☆ | 全天 | 江南水乡代表，距市区约1h；放生桥、课植园可单独选购 | ![朱家角古镇](https://raw.githubusercontent.com/yao1987825/travel-planner/main/images/上海/朱家角古镇.jpg) |
 | 思南公馆 | 免费 | 1.5h | 黄浦区 | 历史建筑 | ⭐ | ★★★★☆ | 全天 | 历史花园住宅群，安静小众；高端餐厅聚集地 | ![思南公馆](https://raw.githubusercontent.com/yao1987825/travel-planner/main/images/上海/思南公馆.jpg) |
 | 上海自然博物馆 | 55 | 3h | 静安区 | 科普亲子 | ⭐ | ★★★★★ | 9:00-17:15 | 恐龙化石镇馆，亲子必去；提前官网预约 | ![上海自然博物馆](https://raw.githubusercontent.com/yao1987825/travel-planner/main/images/上海/上海自然博物馆.jpg) |
@@ -157,18 +157,18 @@
 |------|---------|---------|------|------|---------|---------|---------|---------------------|
 | 古龙峡 | 96-120 | 半天-1天 | 清新区 | 探险/漂流 | 💰💰 | ★★★★★ | 漂流约12:30-15:00（周末提前） | 378米落差、奥运赛道；瀑布群/云天玻霸免费打卡，世界首个4位一体玻璃观光组合 | ![古龙峡](https://raw.githubusercontent.com/yao1987825/travel-planner/main/images/清远/古龙峡.jpg) |
 | 黄腾峡 | 108 | 半天 | 清城区 | 探险/漂流 | 💰💰 | ★★★★☆ | 9:00-18:00 | 被誉为「漂流之王」，峡谷穿越，家庭友好与刺激兼顾 | ![黄腾峡](https://raw.githubusercontent.com/yao1987825/travel-planner/main/images/清远/黄腾峡.jpg) |
-| 连州地下河 | 80（网购约65） | 2-3h | 连州市 | 溶洞/奇观 | 💰 | ★★★★★ | 9:00-17:00 | 国家5A，岭南第一地下河，乘船穿行暗河，常年恒温18度 | ![连州地下河](http://img.mp.itc.cn/upload/20161022/7bd6591097ca4dfe81bf6d668af051ac_th.jpg) |
+| 连州地下河 | 80（网购约65） | 2-3h | 连州市 | 溶洞/奇观 | 💰 | ★★★★★ | 9:00-17:00 | 国家5A，岭南第一地下河，乘船穿行暗河，常年恒温18度 | ![连州地下河](https://raw.githubusercontent.com/yao1987825/travel-planner/main/images/清远/连州地下河.jpg) |
 | 宝晶宫 | 70 | 2h | 英德市 | 溶洞/奇观 | 💰 | ★★★★☆ | 8:30-17:30 | 国家4A，2亿年地质历史，四层相叠金字塔结构，适合亲子研学 | ![宝晶宫](https://raw.githubusercontent.com/yao1987825/travel-planner/main/images/清远/宝晶宫.jpg) |
 | 千年瑶寨 | 98 | 2-3h | 连南瑶族自治县 | 民族文化 | 💰 | ★★★★★ | 全天（表演10:00/15:00免费） | 中国最大瑶寨，宋代城墙+700多栋古建筑；非遗耍歌堂、长鼓舞 | ![千年瑶寨](https://raw.githubusercontent.com/yao1987825/travel-planner/main/images/清远/千年瑶寨.jpg) |
 | 英西峰林走廊 | 免费 | 半天-1天 | 英德市 | 自然/峰林 | ⭐ | ★★★★☆ | 全天 | 广东小桂林，千座喀斯特峰林，骑行/自驾绝佳 | ![英西峰林走廊](https://raw.githubusercontent.com/yao1987825/travel-planner/main/images/清远/英西峰林走廊.jpg) |
-| 飞来峡 | 待核实 | 2-3h | 清城区 | 自然/峡谷 | 💰 | ★★★★☆ | 9:00-17:00 | 老牌景点，「风光誉南国，古迹遍峡山」；北江三峡最险要处，可泛舟游金锁潭、白花潭 | ![飞来峡](https://pic1.zhimg.com/v2-5283d627edc07228e865cef62d6ecbb8_1440w.jpg?source=172ae18b) |
+| 飞来峡 | 待核实 | 2-3h | 清城区 | 自然/峡谷 | 💰 | ★★★★☆ | 9:00-17:00 | 老牌景点，「风光誉南国，古迹遍峡山」；北江三峡最险要处，可泛舟游金锁潭、白花潭 | ![飞来峡](https://raw.githubusercontent.com/yao1987825/travel-planner/main/images/清远/飞来峡.jpg) |
 | 北江夜游 | 待核实 | 1h | 清城区 | 夜景/游船 | 💰 | ★★★★☆ | 19:00-22:00 | 丁香码头登船，约45分钟航程，两岸霓虹璀璨，看市区夜景最佳 | ![北江夜游](https://raw.githubusercontent.com/yao1987825/travel-planner/main/images/清远/北江夜游.jpeg) |
 | 大唐演义 | 待核实 | 2h | 清城区 | 演艺/文化 | 💰💰 | ★★★★☆ | 夜场（以景区公告为准） | 唐朝背景大型实景演出，时光隧道+盛唐歌舞，仿佛穿越回长安 |
 | 北江南岸公园 | 免费 | 1-2h | 清城区 | 城市公园 | ⭐ | ★★★★☆ | 全天 | 清远小洱海，江面开阔反光如镜，四季花卉，本地人私藏摄影圣地 | ![北江南岸公园](https://raw.githubusercontent.com/yao1987825/travel-planner/main/images/清远/北江南岸公园.jpg) |
 | 清远市博物馆 | 免费 | 1.5h | 清城区 | 历史文化 | ⭐ | ★★★☆☆ | 9:00-17:00（周一闭馆） | 了解清远地方史志与传统文化的窗口，陈列大量珍贵文物 | ![清远市博物馆](https://raw.githubusercontent.com/yao1987825/travel-planner/main/images/清远/清远市博物馆.jpg) |
 | 洞天仙境 | 80 | 2h | 英德市 | 溶洞/天坑 | 💰 | ★★★★☆ | 8:30-17:30 | 华南第一天坑，可乘游船深入溶洞，瀑布+奇峰异石，竹林深处「世外桃源」，拍照超出片（九龙镇九龙社区岩口组） | ![洞天仙境](https://raw.githubusercontent.com/yao1987825/travel-planner/main/images/清远/洞天仙境.jpg) |
 | 牛鱼嘴原始生态风景区 | 待核实 | 2-3h | 清城区 | 自然/植物园 | 💰 | ★★★★☆ | 8:30-17:30 | 原始亚热带野生植物园，有国家一级保护植物刺桫椤；沿「岭南第一溪」漫步原始森林，可体验玻璃桥和空中漂流（东城秀田螺村大帽山） | ![牛鱼嘴原始生态风景区](https://raw.githubusercontent.com/yao1987825/travel-planner/main/images/清远/牛鱼嘴原始生态风景区.jpg) |
-| 桃花湖 | 免费 | 2-3h | 清新区 | 自然/湖泊 | ⭐ | ★★★★☆ | 全天 | 广东「小洱海」，喀斯特地貌翠绿湖面，随手一拍都是大片；导航清远桃花湖碧湖农庄后沿对面小路步行 | ![桃花湖](http://5b0988e595225.cdn.sohucs.com/images/20180409/459a53dd005c40038927960dd7a24d7f.jpeg) |
+| 桃花湖 | 免费 | 2-3h | 清新区 | 自然/湖泊 | ⭐ | ★★★★☆ | 全天 | 广东「小洱海」，喀斯特地貌翠绿湖面，随手一拍都是大片；导航清远桃花湖碧湖农庄后沿对面小路步行 | ![桃花湖](https://raw.githubusercontent.com/yao1987825/travel-planner/main/images/清远/桃花湖.jpg) |
 | 天塘山 | 免费 | 半天 | 清新区 | 自然/山岳 | ⭐ | ★★★★☆ | 全天 | 山顶大草坪，云海日出震撼、日落晚霞浪漫、夜空繁星漂亮，露营一绝 | ![天塘山](https://raw.githubusercontent.com/yao1987825/travel-planner/main/images/清远/天塘山.jpg) |
 | 油岭古寨 | 待核实 | 2-3h | 连南瑶族自治县 | 民族文化 | 💰 | ★★★★☆ | 全天 | 依山而建千年古寨，海拔约800米，青砖木房保留古老瑶寨风格；旅游大巴少、商业化低，瑶乡风情浓郁（上山路窄，建议自驾） | ![油岭古寨](https://raw.githubusercontent.com/yao1987825/travel-planner/main/images/清远/油岭古寨.jpg) |
 | 阳山秤架干坑古树群 | 免费 | 1-2h | 阳山县 | 自然/古树 | ⭐ | ★★★★☆ | 全天 | 298株古树交错成荫，平均树龄逾360年，广东十大最美古树群之一；漫步古树林，康养静心（秤架瑶族乡干坑村） | ![阳山秤架干坑古树群](https://raw.githubusercontent.com/yao1987825/travel-planner/main/images/清远/阳山秤架干坑古树群.jpg) |
@@ -200,8 +200,8 @@
 | 鸭绿江断桥 | 30 | 1h | 丹东市振兴区 | 历史/红色 | 💰 | ★★★★★ | 8:00-17:00 | 抗美援朝战争历史见证，桥体弹痕累累；登桥饱览中朝两岸风光，感受历史厚重 | ![鸭绿江断桥](https://raw.githubusercontent.com/yao1987825/travel-planner/main/images/丹东/鸭绿江断桥.jpg) |
 | 鸭绿江游船 | 待核实 | 1h | 丹东市振兴区 | 江景/游船 | 💰 | ★★★★★ | 9:00-17:00 | 乘船近观对岸朝鲜新义州，可看到兵营、军事暗堡、观察哨所；游船约40分钟、快艇约20分钟 | ![鸭绿江游船](https://raw.githubusercontent.com/yao1987825/travel-planner/main/images/丹东/鸭绿江游船.jpg) |
 | 安东老街 | 免费 | 2h | 丹东市振兴区 | 历史/美食街 | ⭐ | ★★★★★ | 全天（晚上氛围最佳） | 复刻丹东二三十年代老街景，一楼特色小吃烟火气十足，怀旧观光+美食购物一体 | ![安东老街](https://raw.githubusercontent.com/yao1987825/travel-planner/main/images/丹东/安东老街.jpg) |
-| 抗美援朝纪念馆 | 免费 | 2h | 丹东市振兴区 | 历史文化 | ⭐ | ★★★★★ | 9:00-16:30（周一闭馆） | 全面反映抗美援朝战争的专题纪念馆，记述战争岁月点滴，建议提前预约 | ![抗美援朝纪念馆](https://p8.itc.cn/images01/20210630/e8698a9633cb4aea83ed0f64d9bc365c.jpeg) |
-| 月亮岛 | 免费 | 半天 | 丹东市振兴区 | 休闲/岛屿 | ⭐ | ★★★★☆ | 全天 | 鸭绿江上欧式风情小岛，餐饮娱乐酒店齐全，适合散步吹江风 | ![月亮岛](https://img95.699pic.com/video_cover/80/97/96/a_42pX7ysmTMKN1601809796.jpg!/fw/820) |
+| 抗美援朝纪念馆 | 免费 | 2h | 丹东市振兴区 | 历史文化 | ⭐ | ★★★★★ | 9:00-16:30（周一闭馆） | 全面反映抗美援朝战争的专题纪念馆，记述战争岁月点滴，建议提前预约 | ![抗美援朝纪念馆](https://raw.githubusercontent.com/yao1987825/travel-planner/main/images/丹东/抗美援朝纪念馆.jpg) |
+| 月亮岛 | 免费 | 半天 | 丹东市振兴区 | 休闲/岛屿 | ⭐ | ★★★★☆ | 全天 | 鸭绿江上欧式风情小岛，餐饮娱乐酒店齐全，适合散步吹江风 | ![月亮岛](https://raw.githubusercontent.com/yao1987825/travel-planner/main/images/丹东/月亮岛.jpg) |
 
 **丹东必吃：** 朝鲜族冷面（现压荞麦面+牛肉高汤+苹果醋梨汁）、黄蚬子炒馇子（丹东独有）、酸汤子（满族传统面食）、韩式烤肉（丹东版，鸭绿江鱼露调味）、海胆水饺（东港紫海胆+鲅鱼）、鸭绿江鲤鱼（集安开江鱼，铁锅柴火烹调）
 > 详细价格见 `references/food_guide.md`
