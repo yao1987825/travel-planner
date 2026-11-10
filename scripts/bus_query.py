@@ -47,8 +47,9 @@ import urllib.request
 HERE = os.path.dirname(os.path.abspath(__file__))
 REFS = os.path.join(os.path.dirname(HERE), "references")
 
-# 默认城市: 郴州。改这里 + SKILL.md 里的说明。
-DEFAULT_CITY = os.environ.get("BUS_DEFAULT_CITY", "郴州市")
+# 本脚本**不设默认城市**：没给城市名时命令会明确要求用户补充。
+# 过去曾默认「郴州市」，导致用户说「坐公交从 XX 到 YY」时被静默当成郴州 —— 这是错的。
+# 城市是用户意图的一部分，必须由用户给出（或由上层 AI 先反问确认）。
 
 UA_MG = "Mozilla/5.0 (Linux; Android 12) Mobile Safari/537.36"
 UA_CL = "Mozilla/5.0 (Linux; Android 13) Mobile MicroMessenger/8.0"
@@ -89,18 +90,26 @@ def http(url, data=None, headers=None, timeout=25):
 
 # ---------------------------------------------------------------- 城市归一化
 
+def require_city(city):
+    """城市名是必填项：空串时明确要求用户补充，而不是静默默认。"""
+    if not city:
+        die("没有指定城市。请先告诉我城市名（例如：郴州、长沙、上海、广州、北京…）")
+    return city
+
 def normalize_city(raw):
     """把用户写的城市名归一成数据源认的名字。
 
     '郴州' → '郴州市'; '桂阳' → 查 districts.json → '郴州市';
     '深圳市' → '深圳市'(不变)。
 
+    **没给城市名返回空串** —— 不默认任何城市，由调用方要求用户补充。
+
     districts.json 的键是官方全名('桂阳县'), 用户往往只写'桂阳' ——
     所以带常见后缀再试一遍。映射出来的值还要校验确实是座城市,
     否则像"万宁市 → 省直辖县级行政区划"这种会直接把查询带沟里。
     """
-    if not raw:
-        return DEFAULT_CITY
+    if not raw or not str(raw).strip():
+        return ""
     name = raw.strip()
     bare = re.sub(r"(市|特别行政区|自治州|地区|盟)$", "", name)
     districts = load_json_ref("districts.json", {})
@@ -469,7 +478,7 @@ def order_of(station):
 
 
 def cmd_lines(args):
-    city = normalize_city(args.city)
+    city = require_city(normalize_city(args.city))
     src = pick_source(city, args.src)
     if not src:
         die(f"两个数据源都没覆盖「{city}」")
@@ -511,7 +520,7 @@ def cmd_lines(args):
 
 
 def cmd_live(args):
-    city = normalize_city(args.city)
+    city = require_city(normalize_city(args.city))
     src = pick_source(city, args.src)
     if not src:
         die(f"两个数据源都没覆盖「{city}」")
@@ -720,7 +729,7 @@ def cmd_live(args):
 
 
 def cmd_station(args):
-    city = normalize_city(args.city)
+    city = require_city(normalize_city(args.city))
     src = pick_source(city, args.src)
     if not src:
         die(f"两个数据源都没覆盖「{city}」")
@@ -782,7 +791,7 @@ def cmd_route(args):
     方向判定**按站序**, 不靠站名猜 —— 同一对站常常两个方向都能到, 区别在于
     哪个方向上起点站在终点站前面。
     """
-    city = normalize_city(args.city)
+    city = require_city(normalize_city(args.city))
     src = pick_source(city, args.src)
     if not src:
         die(f"两个数据源都没覆盖「{city}」")
@@ -916,7 +925,7 @@ def cmd_scan(args):
 
     线路多的时候逐条查很慢 —— 用 --max-probe 限制探测条数, 探够了就停。
     """
-    city = normalize_city(args.city)
+    city = require_city(normalize_city(args.city))
     src = pick_source(city, args.src)
     if not src:
         die(f"两个数据源都没覆盖「{city}」")

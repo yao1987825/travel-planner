@@ -593,6 +593,13 @@ class MetroAdapter:
             self._xref[city] = build_rail_metro_xref(self.stations(city), rail_names)
         return self._xref[city].get(rail_name, [])
 
+    def city_name(self, city: str) -> str:
+        """地铁城市 key -> 中文名（shanghai -> 上海）。"""
+        for c in self.mm.cities():
+            if c.key == city or c.id == city:
+                return c.name or city
+        return city
+
     def city_rail_stations(self, city: str, metro_station_slug: str = "") -> List[str]:
         """该城市的铁路到达站候选（按「与目的地地铁站的映射 -> 城市同名站 -> 其它」排序）。
 
@@ -1030,6 +1037,18 @@ def compose_journey(args: argparse.Namespace) -> Journey:
 
     # ── 2. 市内段：地铁优先，其次公交 ────────────────────────────────────
     city = dest_city or origin_city
+    city_name = metro.city_name(city) if city else ""
+    # 城市是推断出来的（用户没给 --city）：显式提醒，避免把「武林广场」默认当成杭州
+    if args.mode in ("auto", "bus") and not args.city and city and not intercity:
+        if origin_city != dest_city:
+            journey.warnings.append(
+                f"起终点没落在同一个地铁城市（{args.origin}→{origin_city or '未知'}，"
+                f"{args.dest}→{dest_city or '未知'}）；"
+                f"如果实际城市不是「{city_name or city}」，请用 --city 明确指定")
+        else:
+            journey.warnings.append(
+                f"根据起终点推断城市为「{city_name or city}」；"
+                f"如果不对，请用 --city 明确指定城市")
     if city and leg_from and leg_to and leg_from != leg_to:
         metro_leg = None
         if args.mode in ("auto", "metro"):
@@ -1049,7 +1068,7 @@ def compose_journey(args: argparse.Namespace) -> Journey:
             # 公交兜底：地铁不可达时给直达公交方案，而不是只报一句「没找到」
             bus_leg = None
             if args.mode in ("auto", "bus"):
-                bus_leg = build_bus_leg(city, leg_from, leg_to)
+                bus_leg = build_bus_leg(city_name or city, leg_from, leg_to)
             if bus_leg:
                 journey.legs.append(bus_leg)
                 leg_to = bus_leg.dest
@@ -1059,6 +1078,12 @@ def compose_journey(args: argparse.Namespace) -> Journey:
                 journey.warnings.append(
                     f"市内段没找到地铁直达方案，公交也没有直达线路"
                     f"（{city}·{leg_from}→{leg_to}）")
+    elif args.mode in ("auto", "bus"):
+        # 城市没解析出来（比如两个端点都是不知名的公交站）——
+        # 不要静默默认城市，明确要求用户补充。
+        journey.warnings.append(
+            "无法确定城市：请补充城市名后再查公交/市内换乘"
+            "（例如 journey --city 郴州 --from 香麓山花园 --to 武林广场 --mode bus）")
 
     # ── 3. 接驳段：地铁站 → 目的地常需要走一段 ───────────────────────────
     if args.mode in ("auto", "walk") and leg_to and leg_to != args.dest:

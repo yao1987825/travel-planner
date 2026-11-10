@@ -125,6 +125,17 @@ def test_offline() -> None:
     check("图片列解析裸链", generate_plan._parse_image("https://x/2.jpg") == "https://x/2.jpg")
     check("图片列解析空", generate_plan._parse_image("") == "")
 
+    print("[离线] 无默认城市（公交城市必填）")
+    import bus_query
+
+    check("normalize_city 空串", bus_query.normalize_city("") == "")
+    check("normalize_city None", bus_query.normalize_city(None) == "")
+    check("normalize_city 有值", bus_query.normalize_city("郴州") == "郴州市")
+    code, out, err = run(["bus_query.py", "live", "2路"])
+    combined = err + out
+    check("公交无城市报错", code != 0 and "没有指定城市" in combined,
+          combined[:120])
+
 
 def test_metro() -> None:
     print("[在线] 地铁")

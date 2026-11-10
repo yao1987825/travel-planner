@@ -178,25 +178,30 @@ else
 fi
 
 echo
-echo "== 8. 默认城市 =="
+echo "== 8. 城市名必填（无默认城市） =="
 if [[ -f "${HERE}/bus_query.py" ]] && command -v python3 >/dev/null 2>&1; then
+  _nd="$(python3 -c "
+import importlib.util
+spec = importlib.util.spec_from_file_location('bq', r'${HERE}/bus_query.py')
+m = importlib.util.module_from_spec(spec); spec.loader.exec_module(m)
+print('OK' if m.normalize_city('') == '' else 'BAD')
+" 2>/dev/null)"
+  if [[ "$_nd" == "OK" ]]; then
+    ok "没有默认城市 —— 未给城市名时命令会要求用户补充"
+  else
+    bad "normalize_city('') 没有返回空串, 存在默认城市风险"
+  fi
   _c="$(python3 -c "
 import importlib.util
 spec = importlib.util.spec_from_file_location('bq', r'${HERE}/bus_query.py')
 m = importlib.util.module_from_spec(spec); spec.loader.exec_module(m)
-c = m.normalize_city(m.DEFAULT_CITY)
+c = m.normalize_city('郴州')
 print('YES' if (c in m.mygolbs_cities() or c in m.chelaile_cities()) else 'NO')
 " 2>/dev/null)"
-  _d="$(python3 -c "
-import importlib.util
-spec = importlib.util.spec_from_file_location('bq', r'${HERE}/bus_query.py')
-m = importlib.util.module_from_spec(spec); spec.loader.exec_module(m)
-print(m.DEFAULT_CITY)
-" 2>/dev/null)"
   if [[ "$_c" == "YES" ]]; then
-    ok "默认城市 ${_d} —— 数据源有覆盖"
+    ok "样例城市 郴州 —— 数据源有覆盖"
   else
-    bad "默认城市 ${_d} —— 数据源没有覆盖, 改 bus_query.py 里的 DEFAULT_CITY"
+    bad "样例城市 郴州 —— 数据源没有覆盖"
   fi
 fi
 
