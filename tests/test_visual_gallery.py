@@ -2,11 +2,13 @@ import sys
 import tempfile
 import unittest
 from pathlib import Path
+from unittest.mock import patch
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "scripts"))
 
 import generate_gallery
+import generate_trip
 
 
 class GalleryTests(unittest.TestCase):
@@ -51,6 +53,29 @@ class GalleryTests(unittest.TestCase):
     def test_empty_gallery_has_helpful_message(self):
         markdown = generate_gallery.render_gallery("行程", [])
         self.assertIn("visual_stories.json", markdown)
+
+    def test_trip_entrypoint_generates_gallery_automatically(self):
+        with tempfile.TemporaryDirectory() as temp_dir:
+            output = Path(temp_dir)
+            plan_path = output / "travel_plan.json"
+
+            def fake_plan_main(_argv):
+                plan_path.write_text('{"city":"上海"}', encoding="utf-8")
+                return 0
+
+            with patch.object(generate_trip.generate_plan, "main", side_effect=fake_plan_main), \
+                    patch.object(generate_trip.generate_gallery, "main", return_value=0) as gallery_main:
+                result = generate_trip.main(["--output", str(output)])
+
+            self.assertEqual(result, 0)
+            gallery_main.assert_called_once_with(["--plan", str(plan_path)])
+
+    def test_trip_entrypoint_skips_gallery_for_sql_only(self):
+        with patch.object(generate_trip.generate_plan, "main", return_value=0), \
+                patch.object(generate_trip.generate_gallery, "main") as gallery_main:
+            result = generate_trip.main(["--sql-only"])
+        self.assertEqual(result, 0)
+        gallery_main.assert_not_called()
 
 
 if __name__ == "__main__":

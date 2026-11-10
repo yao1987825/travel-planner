@@ -1,26 +1,24 @@
 # 图片与描述图集
 
-行程生成器现有景点图集以图片为主，景点描述和美食/店铺配图展示不够统一。这个扩展保持“图片 + 描述”为核心，不展示预约状态或订单信息。
+行程生成和图片图集已接通：统一入口 `travel plan` 会先生成行程 JSON，再自动输出 `travel_gallery.md`。图集以图片和描述为主，不展示预约状态或订单信息。
 
 ## 使用方式
 
-先按原有方式生成行程 JSON：
-
 ```bash
-python3 scripts/generate_plan.py --profile profile.json --output ./trip
+travel plan --profile profile.json --output ./trip
 ```
 
-然后生成包含景点图片、描述及精选美食/店铺内容的图集：
+或直接运行集成入口：
 
 ```bash
-python3 scripts/generate_gallery.py --plan ./trip/travel_plan.json
+python3 scripts/generate_trip.py --profile profile.json --output ./trip
 ```
 
-输出 `./trip/travel_gallery.md`。已有景点图片会从行程读取，描述优先取景点的介绍/实用提示；美食、推荐店铺和实测打卡内容从 `references/visual_stories.json` 读取。若同名景点有更完整的精选描述，会优先采用精选内容。
+以上命令会同时生成 `travel_plan.json` 和 `travel_gallery.md`。原有 `python3 scripts/generate_plan.py` 仍保留为只生成计划的兼容入口；如需图集，请改用 `travel plan` 或 `generate_trip.py`。
 
 ## 添加图片和描述
 
-在 `visual_stories.json` 的 `cities` 下按城市添加内容。`kind` 只是内容类别，不代表预约或交易状态。图片地址可以是可访问的图片 URL，也可以是项目中的相对路径；图片需要真实、可追溯，描述应由维护者根据可靠资料或亲身体验撰写。
+在 `references/visual_stories.json` 的 `cities` 下按城市添加内容。`kind` 只是内容类别。图片地址可以是可访问的图片 URL，也可以是项目中的相对路径；图片需要真实、可追溯，描述应由维护者根据可靠资料或亲身体验撰写。
 
 ```json
 {
@@ -46,8 +44,8 @@ python3 scripts/generate_gallery.py --plan ./trip/travel_plan.json
 ## 校验
 
 ```bash
-python3 -m unittest tests/test_visual_gallery.py
+python3 -m unittest discover -s tests -p 'test_visual_gallery.py'
 python3 scripts/validate_data.py
 ```
 
-图库扩展不要求购买、预约或接入第三方服务；没有新增图片数据时，脚本仍可生成原有景点图集。
+图库扩展不要求购买、预约或接入第三方服务。
