@@ -98,6 +98,33 @@ def test_offline() -> None:
         rc = validate_data.main([])
     check("validate_data 无 error", rc == 0, buf.getvalue()[-400:])
 
+    print("[离线] 景点实景图")
+    import json as _json
+
+    idx_path = ROOT / "references" / "image_index.json"
+    if idx_path.exists():
+        idx = _json.loads(idx_path.read_text(encoding="utf-8"))
+        cities = idx.get("cities") or {}
+        total = sum(len(v) for v in cities.values())
+        check("图片索引有数据", total > 0, str(total))
+        sample = next(iter(cities.values()), {})
+        one = next(iter(sample.values()), None)
+        if one:
+            check("图片条目含直链", str(one.get("url", "")).startswith("http"))
+            check("图片条目含原始页面", str(one.get("page", "")).startswith("http"))
+            check("图片条目含来源站点", bool(one.get("source")))
+        # 景点表里的图片列要能解析出来
+        md = generate_plan.load_attractions_from_md()
+        with_img = [a for city, items in md.items() if city != "_food_tips"
+                    for a in items if a.get("image")]
+        check("景点表带图片列", len(with_img) > 0, str(len(with_img)))
+    else:
+        print("   - 跳过：还没有 image_index.json（跑 fetch_images.py index）")
+
+    check("图片列解析", generate_plan._parse_image("![外滩](https://x/1.jpg)") == "https://x/1.jpg")
+    check("图片列解析裸链", generate_plan._parse_image("https://x/2.jpg") == "https://x/2.jpg")
+    check("图片列解析空", generate_plan._parse_image("") == "")
+
 
 def test_metro() -> None:
     print("[在线] 地铁")

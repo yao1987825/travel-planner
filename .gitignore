@@ -26,3 +26,7 @@ dist/
 
 # generate_plan.py 的默认输出目录
 travel_output/
+
+# 景点实景图本地缓存（只提交索引 references/image_index.json，不提交图片二进制）
+references/images/*
+!references/images/README.md

@@ -31,7 +31,10 @@ SKILL_NAME = "travel-planner"
 
 INCLUDE_FILES = ["SKILL.md", "README.md", "LICENSE", "requirements.txt"]
 INCLUDE_DIRS = ["references", "scripts"]
-SKIP_NAMES = {".git", ".github", "data", "__pycache__", ".venv", "venv", ".idea", ".vscode"}
+SKIP_NAMES = {".git", ".github", "data", "__pycache__", ".venv", "venv", ".idea", ".vscode",
+              # 图片二进制不进包：md 里存的是可热链的直链 + 来源索引，
+              # 需要离线图的用户可在本地跑 fetch_images.py download
+              "images"}
 
 
 def collect(base):

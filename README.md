@@ -163,7 +163,8 @@ travel-planner/
 │   ├── bus_query.py            # 公交实时（掌上公交 + 车来了）
 │   ├── train_store.py          # 12306 火车票
 │   ├── generate_plan.py        # 行程规划
-│   ├── validate_data.py        # ★ 参考数据校验（格式/来源/重复项/非法票价）
+│   ├── validate_data.py        # ★ 参考数据校验（格式/来源/重复项/非法票价/图片链接）
+│   ├── fetch_images.py         # ★ 景点实景图索引 / 本地缓存
 │   ├── food_price_scraper.py   # 美食价格采集（--query 只读查询）
 │   ├── install.sh / preflight.sh / setup_workspace.sh / package_rikkahub.py
 ├── references/
@@ -174,6 +175,8 @@ travel-planner/
 │   ├── bus_api.md              # 公交接口说明
 │   ├── cities_attractions.md / food_guide.md / money_saving.md
 │   ├── travel_data.json        # ★ 城市注册表（别名/地铁覆盖/来源/风格词表）
+│   ├── image_index.json        # ★ 图片索引（直链 + 原始页面 + 来源站点）
+│   ├── images/                 #   图片本地缓存（默认不入 git）
 │   ├── weather_cities.json     # 天气城市码（3137 个城市/区县）
 │   └── station_cache.json      # 12306 车站电报码表（3407 站，随技能分发）
 ├── tests/
@@ -198,6 +201,24 @@ python3 tests/test_journey.py --offline
 
 三条铁律：**不编造**（拿不准写「待核实」，不算「免费」）、**有出处**（来源登记在 `travel_data.json`）、
 **单一事实源**（景点数据只放 md，代码里不再内置副本）。
+
+## 实景图片
+
+景点不只有文字，还能「看见」：
+
+```bash
+# 检索实景图（真实照片，来自百度百科/携程/去哪儿/人民网/新浪等）
+python3 scripts/fetch_images.py index --city 郴州
+# 把图片链接写回景点表的「图片」列
+python3 scripts/fetch_images.py sync
+# 需要离线图时下载到 references/images/<城市>/
+python3 scripts/fetch_images.py download --limit 10
+```
+
+- 索引在 `references/image_index.json`：每张图都带**原始页面 URL** 和来源站点，便于溯源；
+- 景点表新增可选的「图片」列 `![景点名](URL)`，生成行程时会输出实景图链接，并产出
+  `travel_gallery.md` 图集；
+- 图片版权归原作者/站点所有，仓库只提交索引、不提交图片二进制。
 
 ## 测试
 

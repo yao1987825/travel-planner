@@ -223,6 +223,7 @@ python3 scripts/generate_plan.py --profile profile.json --output ./trip
 |------|------|
 | `references/data_schema.md` | **数据规范**（新增城市/景点/美食前必读；含「待核实」票价的处理约定） |
 | `references/travel_data.json` | 城市注册表（别名、地铁覆盖、数据来源、核实年份、风格类别词表） |
+| `references/image_index.json` | 景点实景图索引（图片直链 + 原始页面 + 来源站点） |
 | `references/cities_attractions.md` | 景点库（门票、时长、省钱等级） |
 | `references/food_guide.md` | 美食价格手册（必吃小吃、店铺、日均预算） |
 | `references/money_saving.md` | 全链路省钱攻略 |
@@ -255,7 +256,10 @@ python3 scripts/generate_plan.py --profile profile.json --output ./trip
 - 公交查询给**车牌 + 还有几站/几分钟**，并提醒以实际站牌为准；
 - 天气给**穿衣/出行建议**，不要只贴数字；
 - 景点门票/开放时间会变，涉及预约的（博物馆、上海博物馆）提醒**提前预约**；
-- 查不到就**照实说没查到**，绝不编线路、车次或时刻。
+- 查不到就**照实说没查到**，绝不编线路、车次或时刻；
+- **讲景点时带上实景图**：景点表最后一列 `![名称](URL)` 就是该景点的真实照片链接，
+  介绍景点时把这个 Markdown 图片一起给出（用户能直接看到实物），别只给文字；
+  没有图的景点如实说「暂无实景图」，不要找风景相近的图代替。
 
 ---
 

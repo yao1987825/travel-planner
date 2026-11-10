@@ -24,6 +24,8 @@
 | `references/cities_attractions.md` | Markdown 表格 | `generate_plan.py` | 景点库（按城市分章） |
 | `references/food_guide.md` | Markdown | `generate_plan.py` | 美食手册（按城市分章） |
 | `references/travel_data.json` | JSON | `generate_plan.py` / `transit.py` | **城市注册表**：别名、地铁覆盖、来源、核实状态、风格类别词表、地铁扫描优先级 |
+| `references/image_index.json` | JSON | `generate_plan.py` / `validate_data.py` | **图片索引**：城市 → 景点 → 图片直链 + 原始页面 + 来源站点 |
+| `references/images/` | 目录 | `fetch_images.py` | 图片本地缓存（默认不入 git） |
 | `references/weather_cities.json` | JSON | `weather_query.py` | 天气城市码（3137 个） |
 | `references/station_cache.json` | JSON | `train_store.py` | 12306 车站电报码（3407 站） |
 | `references/districts.json` | JSON | `bus_query.py` | 区县 → 地级市映射 |
@@ -76,6 +78,9 @@
 | 7 | 必去指数 | `★★★★★` ~ `★☆☆☆☆` | `rating`(1-5) / `priority` |
 | 8 | 开放时间 | `全天` / `9:00-17:00` / `9:00-16:30（周一闭馆）` | 文本 |
 | 9 | 小红书/博客核心评价 | 一句话亮点 + 避坑提示 | `tips` |
+| 10 | 图片（可选） | `![景点名](图片URL)` | `image`（空串=无图） |
+
+> 「图片」列是**可选**的：9 列的表也合法。没有配图的景点不影响其它数据。
 
 ### 2.3 门票列写法（**关键**）
 
@@ -106,7 +111,50 @@
 
 ---
 
-## 3. 美食数据格式（`food_guide.md`）
+## 3. 实景图片（`references/images/` + `references/image_index.json`）
+
+景点除了文字，还得能「看见」。图片体系分两层：
+
+| 文件 | 内容 | 进 git |
+|------|------|--------|
+| `references/image_index.json` | 图片索引：城市 → 景点 → `{url, page, title, source, query, local}` | ✅ |
+| `references/images/<城市>/<景点>.jpg` | 图片二进制本地缓存 | ❌（见 `.gitignore`） |
+
+### 3.1 索引字段
+
+| 字段 | 说明 |
+|------|------|
+| `url` | 图片直链（热链展示用） |
+| `page` | **原始页面 URL** —— 溯源用，这张图出自哪个站点的哪篇内容 |
+| `title` | 原站标题 |
+| `source` | 来源站点（百度百科 / 携程 / 去哪儿 / 人民网 / 新浪…） |
+| `query` | 检索时用的关键词（便于人工复核） |
+| `local` | 本地缓存相对路径（下载后才有） |
+
+### 3.2 怎么加图
+
+```bash
+python3 scripts/fetch_images.py index --city 郴州      # 检索并写入索引
+python3 scripts/fetch_images.py sync                   # 把链接写回景点表「图片」列
+python3 scripts/fetch_images.py download --limit 10    # 需要离线图时再下载
+```
+
+`sync` 会在表格末尾追加/更新「图片」列，其它内容原样保留。
+
+### 3.3 图片规则
+
+- **必须是该景点的真实照片**，不许用风格相近的风景图充数；
+- 检索按「城市 + 景点名」，并设**硬门槛**：标题/页面里必须出现景点名本身
+  （去括号后的核心名，或其前 3 个字）—— 只匹配到城市名不算数
+  （否则「阳山秤架干坑古树群」会被配到「阳山某公园」的新闻图）；
+- 菜谱/游戏/房价等无关结果直接排除；
+- 找不到就**留空**，不硬凑（`大唐演义` 就是没配到图，如实留空）；
+- **必须记 `page`（原始页面）**，图片版权属原作者/站点，索引只做检索与溯源；
+- 仓库不提交图片二进制，只提交索引（链接 + 来源）。
+
+---
+
+## 4. 美食数据格式（`food_guide.md`）
 
 结构与景点库一致，按城市分章：
 
@@ -135,7 +183,7 @@
 
 ---
 
-## 4. 城市注册表（`references/travel_data.json`）
+## 5. 城市注册表（`references/travel_data.json`）
 
 ```json
 {
@@ -171,20 +219,22 @@
 
 ---
 
-## 5. 新增一个城市的完整流程
+## 6. 新增一个城市的完整流程
 
 1. **建数据**：在 `cities_attractions.md` 末尾（跨城市联游建议之前）加一节，
    按 §2.1 写表格，按 §2.3 写门票；
 2. **写美食**（可选但建议）：在 `food_guide.md` 加一节，至少写 `**<城市名>必吃：**` 一行；
 3. **注册**：在 `travel_data.json` 的 `cities` 里加一条（**必须**填 `attractions_source` /
    `food_source` / `verified`）；
-4. **校验**：`python3 scripts/validate_data.py` —— 必须 0 error；
-5. **测试**：`python3 tests/test_journey.py --offline` —— 加一条该城市的断言；
-6. **提交**：commit message 里写清数据来源。
+4. **配图**：`python3 scripts/fetch_images.py index --city <城市>` 然后
+   `python3 scripts/fetch_images.py sync`（图片列见 §3）；
+5. **校验**：`python3 scripts/validate_data.py` —— 必须 0 error；
+6. **测试**：`python3 tests/test_journey.py --offline` —— 加一条该城市的断言；
+7. **提交**：commit message 里写清数据来源。
 
 ---
 
-## 6. 校验脚本
+## 7. 校验脚本
 
 ```bash
 python3 scripts/validate_data.py                # 全量校验
@@ -202,7 +252,7 @@ python3 scripts/validate_data.py --city 丹东    # 只查某个城市
 
 ---
 
-## 7. 真实数据准则
+## 8. 真实数据准则
 
 ### 7.1 价格
 
@@ -224,7 +274,7 @@ python3 scripts/validate_data.py --city 丹东    # 只查某个城市
 
 ---
 
-## 8. 数据维护记录
+## 9. 数据维护记录
 
 | 日期 | 变更 | 来源 |
 |------|------|------|

@@ -1,0 +1,676 @@
+{
+  "version": "1.0",
+  "updated": "2026-11-10",
+  "cities": {
+    "郴州": {
+      "东江湖（雾漫小东江）": {
+        "url": "https://img.pconline.com.cn/images/photoblog/5/1/0/6/5106587/20094/25/1240618893918.jpg",
+        "page": "https://dp.pconline.com.cn/photo/505929.html",
+        "title": "【雾漫小东江摄影图片】湖南郴州市东江湖景区风光摄影_太平洋电脑网摄影部落",
+        "source": "dp.pconline.com.cn",
+        "query": "郴州 东江湖（雾漫小东江）",
+        "local": ""
+      },
+      "高椅岭": {
+        "url": "http://i5.szhomeimg.com/o/2024/02/26/0226082625168934.JPG",
+        "page": "https://bbs.szhome.com/340-340010-detail-178647089.html",
+        "title": "郴州高椅岭风景区 - 家在深圳",
+        "source": "bbs.szhome.com",
+        "query": "郴州 高椅岭",
+        "local": ""
+      },
+      "仰天湖大草原": {
+        "url": "https://newbbs-fd.zol-img.com.cn/t_s800x2000/g5/M00/0F/07/ChMkJlYDYgCIa3eaAAYKfCzIYuIAAC9jgGlA40ABgqU133.jpg",
+        "page": "https://bbs.zol.com.cn/dcbbs/d19_58403.html",
+        "title": "大山之中带有神秘色彩的郴州仰天湖大草原-中关村在线摄影论坛",
+        "source": "bbs.zol.com.cn",
+        "query": "郴州 仰天湖大草原",
+        "local": ""
+      },
+      "莽山五指峰": {
+        "url": "http://pic.vjshi.com/2021-06-05/619e5a7cb872b4a853a8b718bbdd7cb9/00003.jpg?x-oss-process=style/watermark",
+        "page": "http://www.dashangu.com/postimg_21467012.html",
+        "title": "湖南莽山五指峰图片,郴州莽山五指峰图片,莽山五指峰景区图片_大山谷图库",
+        "source": "dashangu.com",
+        "query": "郴州 莽山五指峰",
+        "local": ""
+      },
+      "万华岩": {
+        "url": "https://chenzhourboss.newaircloud.com/chenzhourb/upload/202003/18/1e647367-ba0b-4571-88fd-cbb6fc8f861a.jpg",
+        "page": "https://hn.rednet.cn/content/2020/03/20/6876649.html",
+        "title": "3月20日，郴州万华岩景区恢复对外开放_郴州_湖南频道_红网",
+        "source": "hn.rednet.cn",
+        "query": "郴州 万华岩",
+        "local": ""
+      },
+      "板梁古村": {
+        "url": "https://n.sinaimg.cn/sinacn13/213/w2048h1365/20180729/e813-hfxsxzh4288896.jpg",
+        "page": "https://k.sina.com.cn/article_5399157203_p141d099d302700ame3.html",
+        "title": "√ 郴州板梁古村打卡 板梁古村位于湖南省郴州市永兴县高亭乡境内|板梁古村|高亭|永兴县|郴州市|郴州_新浪新闻",
+        "source": "新浪",
+        "query": "郴州 板梁古村",
+        "local": ""
+      },
+      "飞天山丹霞": {
+        "url": "https://newbbs-fd.zol-img.com.cn/t_s1200x5000/g7/M00/05/0C/ChMkK2MbS7iIcpElAAdKU9unLvgAAHWtgCB_acAB0pr869.jpg",
+        "page": "https://bbs.zol.com.cn/dcbbs/d14_176079.html",
+        "title": "湖南郴州飞天山丹霞地貌风景区-中关村在线摄影论坛",
+        "source": "bbs.zol.com.cn",
+        "query": "郴州 飞天山丹霞",
+        "local": ""
+      },
+      "苏仙岭": {
+        "url": "http://inews.gtimg.com/newsapp_bt/0/4033070710/641",
+        "page": "http://hn.qq.com/a/20180619/028492.htm",
+        "title": "天下第十八福地！郴州苏仙岭有着最动人的传说_大湘网_腾讯网",
+        "source": "腾讯",
+        "query": "郴州 苏仙岭",
+        "local": ""
+      },
+      "郴州博物馆": {
+        "url": "https://news-vod.voc.com.cn/9/2023/10/15/3263aa5dde863bf0f4dc901fd78d68424c935eed1697331131416.png?pid=7768555",
+        "page": "https://www.hunantoday.cn/news/xhn/202310/18820503.html",
+        "title": "郴州博物馆文化游火热 - 郴州 - 新湖南",
+        "source": "hunantoday.cn",
+        "query": "郴州 郴州博物馆",
+        "local": ""
+      },
+      "裕后街": {
+        "url": "https://img2.voc.com.cn/2022/05/14/6f54492bb47f934e2c7bf2f0f43afe9f63fbc3161652485118.jpg",
+        "page": "https://www.hunantoday.cn/article/202205/202205140743134024.html",
+        "title": "快时代·慢时光丨郴州裕后街：湘粤古道通古今 - 郴州 - 新湖南",
+        "source": "hunantoday.cn",
+        "query": "郴州 裕后街",
+        "local": ""
+      },
+      "白廊（东江湖环湖公路）": {
+        "url": "https://img2.voc.com.cn/2020/10/16/3eb545ef43251f5e758f412141350e51a07317b71602855046.png",
+        "page": "https://sxdsb.voc.com.cn/content/14936815",
+        "title": "“湘约”水映白廊！湖南秋季乡村文化旅游节将于10月31日郴州资兴开幕-三湘都市报",
+        "source": "sxdsb.voc.com.cn",
+        "query": "郴州 白廊（东江湖环湖公路）",
+        "local": ""
+      },
+      "九龙江": {
+        "url": "http://n.sinaimg.cn/sinacn17/224/w640h384/20180323/b622-fysnevm2034088.jpg",
+        "page": "https://k.sina.com.cn/article_6418481182_17e92401e001008di1.html",
+        "title": "湖南九龙江森林公园—郴州之最|北湖|九龙江|郴州_新浪新闻",
+        "source": "新浪",
+        "query": "郴州 九龙江",
+        "local": ""
+      }
+    },
+    "长沙": {
+      "橘子洲头": {
+        "url": "http://m.tuniucdn.com/fb2/t1/G2/M00/CC/8F/Cii-TFgOzYKIHzISAATd8QHCbkoAADtRgBnuuQABN4J191_w640_h480_c1_t0.jpg",
+        "page": "http://www.dashangu.com/postimg_20681072.html",
+        "title": "长沙橘子洲头路线图,长沙橘子洲头,长沙橘子洲头全景_大山谷图库",
+        "source": "dashangu.com",
+        "query": "长沙 橘子洲头",
+        "local": ""
+      },
+      "岳麓山": {
+        "url": "https://img95.699pic.com/photo/50157/4551.jpg_wh860.jpg",
+        "page": "https://699pic.com/tupian-501574551.html",
+        "title": "长沙岳麓山爱晚亭秋景高清图片下载-正版图片501574551-摄图网",
+        "source": "699pic.com",
+        "query": "长沙 岳麓山",
+        "local": ""
+      },
+      "岳麓书院": {
+        "url": "https://n.sinaimg.cn/sinacn18/383/w2048h1535/20180802/4ff5-hhehtqf7807783.jpg",
+        "page": "https://k.sina.com.cn/article_3227191587_pc05b092302700ccjf.html",
+        "title": "空中看岳麓书院周围。|岳麓书院|长沙_新浪新闻",
+        "source": "新浪",
+        "query": "长沙 岳麓书院",
+        "local": ""
+      },
+      "湖南省博物馆": {
+        "url": "https://www.icswb.com/upload/document_news/sub_1/152/2017/11/20171117/document_news_content_5a0ed110636b2.jpg",
+        "page": "https://www.icswb.com/h/152/20171117/495840.html",
+        "title": "湖南省博物馆将全新亮相 内外初见 敬请期待-都市-长沙晚报网",
+        "source": "icswb.com",
+        "query": "长沙 湖南省博物馆",
+        "local": ""
+      },
+      "太平老街": {
+        "url": "https://p2.itc.cn/images01/20220414/ec93821b02674dfcbc5ef41dd5188a1a.png",
+        "page": "https://www.sohu.com/a/537791996_121109117",
+        "title": "《中国旅游报》报道 | 长沙太平老街：湖湘文化时尚表达_街区_建筑_传统",
+        "source": "搜狐",
+        "query": "长沙 太平老街",
+        "local": ""
+      },
+      "文和友（超级文和友）": {
+        "url": "https://youimg1.c-ctrip.com/target/0100a120003j0iib93145.jpg",
+        "page": "https://touch.travel.qunar.com/comment/10163740483?from=client&bd_source=bdglxzh",
+        "title": "2025长沙文和友(海信广场店)美食餐厅,即怀旧经典，又有现代化建设...【去哪儿攻略】",
+        "source": "去哪儿",
+        "query": "长沙 文和友（超级文和友）",
+        "local": ""
+      },
+      "五一广场": {
+        "url": "http://i2.hexun.com/2019-08-07/198130172.jpg",
+        "page": "https://news.hexun.com/2019-08-07/198130174.html",
+        "title": "影像70年丨五一广场，长沙人心中永远的地标-新闻频道-和讯网",
+        "source": "news.hexun.com",
+        "query": "长沙 五一广场",
+        "local": ""
+      },
+      "天心阁": {
+        "url": "https://img95.699pic.com/photo/50176/9073.jpg_wh860.jpg",
+        "page": "https://699pic.com/tupian-501769073.html",
+        "title": "长沙天心阁古建筑高清图片下载-正版图片501769073-摄图网",
+        "source": "699pic.com",
+        "query": "长沙 天心阁",
+        "local": ""
+      },
+      "杜甫江阁": {
+        "url": "https://newbbs-fd.zol-img.com.cn/t_s1200x5000/g5/M00/0F/08/ChMkJl3mAviIEKuvAAT0K8vxOIMAAvjYgBvdtkABPRD202.jpg",
+        "page": "https://bbs.zol.com.cn/dcbbs/d33992_8764.html",
+        "title": "长沙杜甫江阁 唐代诗圣传奇（外景-上）-中关村在线摄影论坛",
+        "source": "bbs.zol.com.cn",
+        "query": "长沙 杜甫江阁",
+        "local": ""
+      },
+      "谢子龙影像艺术馆": {
+        "url": "https://pic.nximg.cn/file/20190626/13355030_164159123084_2.jpg",
+        "page": "https://www.nipic.com/show/24571203.html",
+        "title": "湖南 长沙 谢子龙影像艺术馆摄影图__国内旅游_旅游摄影_摄影图库_昵图网",
+        "source": "nipic.com",
+        "query": "长沙 谢子龙影像艺术馆",
+        "local": ""
+      },
+      "洋湖湿地公园": {
+        "url": "https://hzyly.com/upload/201908/23/201908230906201247.jpg",
+        "page": "https://www.hzyly.com/case-show.aspx?id=501",
+        "title": "湖南长沙洋湖湿地公园 - 湿地与滨水景观 - 首家园林设计上市公司",
+        "source": "hzyly.com",
+        "query": "长沙 洋湖湿地公园",
+        "local": ""
+      },
+      "长沙世界之窗": {
+        "url": "https://imgs.qunarzz.com/sight/p0/1905/6e/6e500852c6c21ec5a3.img.jpg_710x360_0b712278.jpg",
+        "page": "https://piao.qunar.com/ticket/detaillight_7121.html",
+        "title": "长沙世界之窗门票,长沙世界之窗门票预订,长沙世界之窗门票价格,去哪儿网门票",
+        "source": "去哪儿",
+        "query": "长沙 长沙世界之窗",
+        "local": ""
+      }
+    },
+    "衡阳": {
+      "南岳衡山": {
+        "url": "http://vip-public.people.com.cn/photo/2019/9/1/1255372/8631154_m.jpg",
+        "page": "http://vip.people.com.cn/albumsDetail?aid=1255372&pid=8631154",
+        "title": "湖南衡阳：南岳衡山景区迎旅游旺季-人民图片网",
+        "source": "人民网",
+        "query": "衡阳 南岳衡山",
+        "local": ""
+      },
+      "石鼓书院": {
+        "url": "http://img.pconline.com.cn/images/upload/upc/tx/itbbs/1312/17/c20/29718976_1387261775130.jpg",
+        "page": "https://dp.pconline.com.cn/dphoto/list_3229941.html",
+        "title": "【衡阳石鼓书院摄影图片】风光摄影_qz29412967_太平洋电脑网摄影部落",
+        "source": "dp.pconline.com.cn",
+        "query": "衡阳 石鼓书院",
+        "local": ""
+      },
+      "酃湖公园": {
+        "url": "https://img2.voc.com.cn/9/2024/07/31/7aa0799f71251e5d5f2d8f3a366dfdaccbb4e6ef1722397911709.png?pid=15725847",
+        "page": "https://www.hunantoday.cn/news/xhn/202407/20373202.html",
+        "title": "喜迎旅发会·珠晖项目志⑥｜酃湖公园：三个标段全力冲刺 力争8月1日试开园 - 衡阳 - 新湖南",
+        "source": "hunantoday.cn",
+        "query": "衡阳 酃湖公园",
+        "local": ""
+      },
+      "东洲岛": {
+        "url": "https://vod-hszx-xhncloud.voc.com.cn/214/2026/02/10/137f31e287743ac537c71a2e74106097239d52d21770715088119.png?pid=37122585",
+        "page": "https://www.hunantoday.cn/news/xhn/202602/31542795.html",
+        "title": "6.15亿元“打包”出圈！衡阳东洲岛案例入选全国典型 - 要闻 - 新湖南",
+        "source": "hunantoday.cn",
+        "query": "衡阳 东洲岛",
+        "local": ""
+      },
+      "保卫里": {
+        "url": "https://img2.voc.com.cn/2024/09/19/9ae8f9f9cb3e2ace9cd8ee14cd942c71214adec01726747993.jpg",
+        "page": "https://www.hunantoday.cn/news/xhn/202409/20703922.html",
+        "title": "周末不忙 去趟衡阳⑨|保卫里：徜徉多巴胺小巷，回忆不再泛黄 - 策游 - 新湖南",
+        "source": "hunantoday.cn",
+        "query": "衡阳 保卫里",
+        "local": ""
+      },
+      "回雁峰": {
+        "url": "https://youimg1.c-ctrip.com/target/01056120008k3vqdfECB4_W_10000_1200.jpg?proc=autoorient",
+        "page": "https://travel.qunar.com/p-oi709185-huiyanfeng",
+        "title": "2024回雁峰-旅游攻略-门票-地址-问答-游记点评，衡阳旅游旅游景点推荐-去哪儿攻略",
+        "source": "去哪儿",
+        "query": "衡阳 回雁峰",
+        "local": ""
+      },
+      "退省庵": {
+        "url": "https://pic.vjshi.com/2021-11-30/1bbab81240ab42e3b9f57591830fd44b/online/main.jpg?x-oss-process=style/w342_h192_center",
+        "page": "https://www.vjshi.com/watch/6831315.html",
+        "title": "衡阳彭玉麟故居_玉麟风骨_退省庵_3840X2160_高清视频素材下载(编号:6831315)_实拍视频_光厂(VJ师网) www.vjshi.com",
+        "source": "vjshi.com",
+        "query": "衡阳 退省庵",
+        "local": ""
+      },
+      "夏明翰故居": {
+        "url": "https://img.rednet.cn/2020/04-16/1587001139302-y1kutn8en5h.png",
+        "page": "https://tour.rednet.cn/content/2020/04/16/7060320.html",
+        "title": "4月15日起衡阳县夏明翰故居闭馆提质 暂停对外开放_湖南文旅_旅游频道",
+        "source": "tour.rednet.cn",
+        "query": "衡阳 夏明翰故居",
+        "local": ""
+      },
+      "衡东县（衡东土菜）": {
+        "url": "https://img2.voc.com.cn/9/2025/10/14/7e141dc0a988d3d622515d9a05c877bbe92dee191760413972238.jpeg?pid=30723772",
+        "page": "https://www.hunantoday.cn/news/xhn/202510/30660067.html",
+        "title": "打造中国土菜名城衡东县：融入大南岳旅游圈 - 衡阳 - 新湖南",
+        "source": "hunantoday.cn",
+        "query": "衡阳 衡东县（衡东土菜）",
+        "local": ""
+      }
+    },
+    "广州": {
+      "沙面岛": {
+        "url": "https://n.sinaimg.cn/sinakd20108/120/w1080h1440/20220225/ea1d-ee976d2e1f761aacdb8edae13a4b93b6.jpg",
+        "page": "https://cj.sina.com.cn/articles/view/3738676010/pded7ab2a02700wo43",
+        "title": "广州·沙面岛__财经头条",
+        "source": "新浪",
+        "query": "广州 沙面岛",
+        "local": ""
+      },
+      "北京路步行街": {
+        "url": "https://picx.zhimg.com/50/v2-e3634e3e879e14dab82a3245d7aebd9c_720w.jpg?source=1940ef5c",
+        "page": "https://www.zhihu.com/question/346252108?from=singlemessage",
+        "title": "为什么广州的北京路步行街这么受欢迎？ - 知乎",
+        "source": "zhihu.com",
+        "query": "广州 北京路步行街",
+        "local": ""
+      },
+      "越秀公园": {
+        "url": "https://img1.qunarzz.com/travel/d3/1702/38/3f512b55b291aab5.jpg_r_640x426x70_7790d82c.jpg",
+        "page": "https://touch.go.qunar.com/poi/702796",
+        "title": "2026越秀公园门票,广州越秀公园游玩攻略,越秀公园游览攻略路线/地址/门票价格-【去哪儿攻略】",
+        "source": "去哪儿",
+        "query": "广州 越秀公园",
+        "local": ""
+      },
+      "广东省博物馆": {
+        "url": "https://img1.qunarzz.com/travel/d7/1704/d6/4ad2232ebaf3fdb5.jpg_r_640x426x70_519e43e3.jpg",
+        "page": "https://touch.travel.qunar.com/poi/715251",
+        "title": "2026广东省博物馆门票,广州广东省博物馆游玩攻略,广东省博物馆游览攻略路线/地址/门票价格-【去哪儿攻略】",
+        "source": "去哪儿",
+        "query": "广州 广东省博物馆",
+        "local": ""
+      },
+      "上下九步行街": {
+        "url": "http://youimg1.c-ctrip.com/target/fd/tg/g3/M08/36/F2/CggYGlY5XmyAJOIdACYZ8ZAocno091.jpg",
+        "page": "http://you.ctrip.com/sight/guangzhou152/64963-dianping59813808.html",
+        "title": "【携程攻略】广东上下九步行街景点,广州之行的第一站，本来想先去看广州塔的夜景，但更急于品尝老字号的…",
+        "source": "携程",
+        "query": "广州 上下九步行街",
+        "local": ""
+      },
+      "石室圣心大教堂": {
+        "url": "https://huacheng.gz-cmc.com/upload/news/image/2023/02/10/91be012034f74bd6aa5974a7b3765254.jpeg",
+        "page": "https://huacheng.gz-cmc.com/pages/2023/02/10/ad756734543c4ec9800e4275b2405710.html",
+        "title": "广州石室圣心大教堂恢复对外开放",
+        "source": "huacheng.gz-cmc.com",
+        "query": "广州 石室圣心大教堂",
+        "local": ""
+      },
+      "白云山": {
+        "url": "https://i.mooool.com/img/2025/04/image001.jpg?x-oss-process=style%2F1536x1536",
+        "page": "https://mooool.com/guangzhou-baiyun-mountain-moxing-summit-scenic-elevator-and-walkway-by-scutad.html",
+        "title": "广州白云山摩星岭观光扶梯及栈道：实现白云山最后“一公里”无障碍通行 / 华南理工大学建筑设计研究院有限公司 – mooool木藕设计网",
+        "source": "mooool.com",
+        "query": "广州 白云山",
+        "local": ""
+      },
+      "广州塔（小蛮腰）": {
+        "url": "https://img.pconline.com.cn/images/upload/upc/tx/itbbs/1308/22/c6/24736270_1377136889921_mthumb.jpg",
+        "page": "https://dp.pconline.com.cn/photo/list_2523023.html",
+        "title": "【旅游随拍之十一———广州塔（小蛮腰）———摄影图片】风光摄影整组浏览_太平洋科技摄影部落",
+        "source": "dp.pconline.com.cn",
+        "query": "广州 广州塔（小蛮腰）",
+        "local": ""
+      },
+      "永庆坊": {
+        "url": "http://www.lw.gov.cn/img/0/924/924122/9058822.jpg",
+        "page": "https://www.lw.gov.cn/jsms/xgyk/whlw/content/post_9058822.html",
+        "title": "永庆坊 广州市荔湾区人民政府门户网站",
+        "source": "政府网站",
+        "query": "广州 永庆坊",
+        "local": ""
+      },
+      "珠江夜游": {
+        "url": "https://tr-osdcp.qunarzz.com/tr-osd-tr-space/img/52bf329712fbd6e5e652059522d18fbd.jpg",
+        "page": "https://touch.travel.qunar.com/comment/6179016?from=client&bd_source=bdglxzh",
+        "title": "2023珠江夜游广州塔·中大码头游玩攻略,但吹着江风看夜景实在很舒服...【去哪儿攻略】",
+        "source": "去哪儿",
+        "query": "广州 珠江夜游",
+        "local": ""
+      },
+      "花城广场": {
+        "url": "http://n.sinaimg.cn/sinacn20/133/w2000h1333/20180905/c7a7-hitesuy7772427.jpg",
+        "page": "https://k.sina.com.cn/article_1650630701_6262a02d001009q1b.html",
+        "title": "花城广场看花城，邂逅音乐喷泉与小蛮腰的约会|音乐喷泉|广州塔|花城_新浪新闻",
+        "source": "新浪",
+        "query": "广州 花城广场",
+        "local": ""
+      },
+      "陈家祠": {
+        "url": "https://n.sinaimg.cn/sinakd10102/229/w2048h1381/20200324/f4eb-ireifzi2099407.jpg",
+        "page": "https://k.sina.cn/article_7042715500_p1a3c74f6c00100pxxl.html?from=cul",
+        "title": "巧夺天工百年陈家祠，岭南建筑艺术之瑰宝，被誉为广州文化名片",
+        "source": "k.sina.cn",
+        "query": "广州 陈家祠",
+        "local": ""
+      },
+      "长隆欢乐世界": {
+        "url": "https://res.klook.com/image/upload/c_fill,w_627,h_470/q_80/w_80,x_15,y_15,g_south_west,l_Klook_water_br_trans_yhcmh3/activities/umz7hv1jcnovvrbqizhn.jpg",
+        "page": "https://www.klook.cn/zh-CN/activity/3172-chimelong-paradise-guang-zhou/",
+        "title": "广东广州长隆欢乐世界门票 - Klook客路",
+        "source": "klook.cn",
+        "query": "广州 长隆欢乐世界",
+        "local": ""
+      },
+      "长隆野生动物世界": {
+        "url": "https://img1.qunarzz.com/travel/d8/1809/97/8da79f545fd526b5.jpg_r_640x427x70_9faa6af5.jpg",
+        "page": "https://touch.travel.qunar.com/poi/715300",
+        "title": "2026长隆野生动物世界门票,广州长隆野生动物世界游玩攻略,长隆野生动物世界游览攻略路线/地址/门票价格-【去哪儿攻略】",
+        "source": "去哪儿",
+        "query": "广州 长隆野生动物世界",
+        "local": ""
+      }
+    },
+    "上海": {
+      "外滩": {
+        "url": "https://img95.699pic.com/photo/50055/3997.jpg_wh860.jpg",
+        "page": "https://699pic.com/tupian-500553997.html",
+        "title": "上海外滩高清图片下载-正版图片500553997-摄图网",
+        "source": "699pic.com",
+        "query": "上海 外滩",
+        "local": ""
+      },
+      "豫园": {
+        "url": "https://www.travphotos.cn/picpath/photo/image/2020/06/26/hk_c_1593161506164023040.jpg",
+        "page": "https://www.travphotos.cn/travel/detail.jsp?id=50472101",
+        "title": "上海豫园 Yu Garden——摄影",
+        "source": "travphotos.cn",
+        "query": "上海 豫园",
+        "local": ""
+      },
+      "上海博物馆": {
+        "url": "https://img1.qunarzz.com/travel/poi/1409/22/a438e22e3f0d0e68ffffffffc8d65eac.jpg",
+        "page": "https://touch.go.qunar.com/poi/716265",
+        "title": "2025上海博物馆门票,上海上海博物馆游玩攻略,上海博物馆游览攻略路线/地址/门票价格-【去哪儿攻略】",
+        "source": "去哪儿",
+        "query": "上海 上海博物馆",
+        "local": ""
+      },
+      "田子坊": {
+        "url": "https://www.shuomingshu.cn/wp-content/uploads/images/2023/02/25/2dc954fb93bb42099ce893071f10c35d_wnq1gwar3tp.jpg",
+        "page": "https://www.shuomingshu.cn/baike/193786.html",
+        "title": "田子坊旅游攻略必看（上海最“文艺”弄堂，魔都市区网红打卡地：田子坊） | 说明书网",
+        "source": "shuomingshu.cn",
+        "query": "上海 田子坊",
+        "local": ""
+      },
+      "新天地": {
+        "url": "https://www.whb.cn/u/cms/www/202205/28190337mp7d.jpg",
+        "page": "https://wenhui.whb.cn/third/jinri/202205/28/469281.html",
+        "title": "上海新天地6月1日起恢复线下营业！",
+        "source": "wenhui.whb.cn",
+        "query": "上海 新天地",
+        "local": ""
+      },
+      "武康路": {
+        "url": "http://pic.people.com.cn/NMediaFile/2024/0508/MAIN1715151487525SNRJW0EMGL.jpg",
+        "page": "http://pic.people.com.cn/n1/2024/0508/c1016-40231490-2.html",
+        "title": "上海：百年武康路 焕发新活力【2】--图片频道--人民网",
+        "source": "人民网",
+        "query": "上海 武康路",
+        "local": ""
+      },
+      "南京路步行街": {
+        "url": "http://vip-public.people.com.cn/photo/2020/9/12/8d3b7c628cd54ec4a38b58518e8c943fmSkw_m.jpg",
+        "page": "http://vip.people.com.cn/albumsDetail?aid=1361610",
+        "title": "上海南京路步行街东拓段正式开街 现场人气火爆-人民图片网",
+        "source": "人民网",
+        "query": "上海 南京路步行街",
+        "local": ""
+      },
+      "东方明珠塔": {
+        "url": "https://img.cc0.cn/pixabay/2019101909081072801.jpg!cc0.cn.jpg",
+        "page": "https://cc0.cn/image/1571508917281008.html",
+        "title": "东方明珠塔、上海、塔 - 免费可商用图片 - CC0素材网",
+        "source": "cc0.cn",
+        "query": "上海 东方明珠塔",
+        "local": ""
+      },
+      "上海博物馆东馆（新馆）": {
+        "url": "https://pic.yupoo.com/fotomag/212638da/800d0857.jpg",
+        "page": "https://art.icity.ly/museums/iknb8k4",
+        "title": "上海博物馆东馆 - 每日环球展览 - iMuseum",
+        "source": "art.icity.ly",
+        "query": "上海 上海博物馆东馆（新馆）",
+        "local": ""
+      },
+      "迪士尼乐园": {
+        "url": "http://sh.tn8.net/u/cms/shzyx/201811/22201518qy89.jpg",
+        "page": "http://sh.tn8.net/lsrw/2983.jhtml",
+        "title": "上海迪士尼乐园- 上海自由行|老营房旅游",
+        "source": "sh.tn8.net",
+        "query": "上海 迪士尼乐园",
+        "local": ""
+      },
+      "朱家角古镇": {
+        "url": "https://img95.699pic.com/photo/50011/8689.jpg_wh860.jpg",
+        "page": "https://699pic.com/tupian-500118689.html",
+        "title": "上海朱家角古镇古建筑群高清图片下载-正版图片500118689-摄图网",
+        "source": "699pic.com",
+        "query": "上海 朱家角古镇",
+        "local": ""
+      },
+      "思南公馆": {
+        "url": "http://img.pconline.com.cn/images/upload/upc/tx/photoblog/1202/04/c0/10325710_10325710_1328321915500.jpg",
+        "page": "https://dp.pconline.com.cn/dphoto/list_2249372.html",
+        "title": "【上海思南公馆摄影图片】上海风光摄影_依山的天空_太平洋电脑网摄影部落",
+        "source": "dp.pconline.com.cn",
+        "query": "上海 思南公馆",
+        "local": ""
+      },
+      "上海自然博物馆": {
+        "url": "https://youimg1.c-ctrip.com/target/fd/tg/g2/M08/8C/43/CghzgVWw9JmAPVuAAD1jt4fxYi8104_D_10000_1200.jpg?proc=autoorient",
+        "page": "http://travel.qunar.com/p-oi702212-shanghaiziranbowuguan",
+        "title": "2021上海自然博物馆-旅游攻略-门票-地址-问答-游记点评，上海旅游旅游景点推荐-去哪儿攻略",
+        "source": "去哪儿",
+        "query": "上海 上海自然博物馆",
+        "local": ""
+      },
+      "上海科技馆": {
+        "url": "https://static.vrqjcs.com/web/work/2019/20190327152356958260.jpg",
+        "page": "https://www.vrqjcs.com/p/528c3bef8c115597",
+        "title": "上海科技馆-VR全景城市",
+        "source": "vrqjcs.com",
+        "query": "上海 上海科技馆",
+        "local": ""
+      }
+    },
+    "清远": {
+      "古龙峡": {
+        "url": "http://n.sinaimg.cn/sinacn23/700/w911h589/20180928/cb64-hkrzyam1827952.jpg",
+        "page": "https://k.sina.com.cn/article_1557589493_5cd6edf500100g2t3.html",
+        "title": "广东清远古龙峡，国庆假期出游好去处|云天|古龙峡|清远_新浪新闻",
+        "source": "新浪",
+        "query": "清远 古龙峡",
+        "local": ""
+      },
+      "黄腾峡": {
+        "url": "https://tr-osdcp.qunarzz.com/tr-osd-tr-space/img/51a6365bfeed82b63cb353cf1cfe19e5.jpg_r_640x480x70_3632fd1e.jpg",
+        "page": "https://touch.travel.qunar.com/poi/35198736",
+        "title": "2023清远黄腾峡生态旅游区-西南门门票,清远清远黄腾峡生态旅游区-西南门游玩攻略,清远黄腾峡生态旅游区-西南门游览攻略路线/地址/门票价格 ...",
+        "source": "去哪儿",
+        "query": "清远 黄腾峡",
+        "local": ""
+      },
+      "连州地下河": {
+        "url": "http://img.mp.itc.cn/upload/20161022/7bd6591097ca4dfe81bf6d668af051ac_th.jpg",
+        "page": "https://www.sohu.com/a/116896801_445672",
+        "title": "清远连州地下河门票,神秘瑰丽的地下河!",
+        "source": "搜狐",
+        "query": "清远 连州地下河",
+        "local": ""
+      },
+      "宝晶宫": {
+        "url": "https://qiniu-cdn0.jinxidao.com/group1/M00/2B/EA/ooYBAFyciTSAUnVwAALT0Gk9DTU756.jpg",
+        "page": "https://huaban.com/pins/5853922978",
+        "title": "清远英德宝晶宫景区 天宫玻璃桥 -花瓣网",
+        "source": "huaban.com",
+        "query": "清远 宝晶宫",
+        "local": ""
+      },
+      "千年瑶寨": {
+        "url": "http://n.sinaimg.cn/sinakd20210514ac/524/w1360h764/20210514/474a-kpzzqna2854263.jpg",
+        "page": "https://k.sina.com.cn/article_7450948589_1bc1c73ed00100vo0c.html",
+        "title": "古老的千年瑶寨，藏在清远的群山中，给人一种很梦幻的感觉|瑶族|瑶寨|千年瑶寨_新浪新闻",
+        "source": "新浪",
+        "query": "清远 千年瑶寨",
+        "local": ""
+      },
+      "英西峰林走廊": {
+        "url": "http://imgs.qunarzz.com/sight/p0/1807/88/88d07eb34641d0d1a3.img.jpg_1000x520_13964e67.jpg",
+        "page": "http://www.dashangu.com/postimg_18905459.html",
+        "title": "清远英西峰林走廊图片,清远英西峰林走廊,英西峰林走廊图片_大山谷图库",
+        "source": "dashangu.com",
+        "query": "清远 英西峰林走廊",
+        "local": ""
+      },
+      "飞来峡": {
+        "url": "https://pic1.zhimg.com/v2-5283d627edc07228e865cef62d6ecbb8_1440w.jpg?source=172ae18b",
+        "page": "https://zhuanlan.zhihu.com/p/325700765",
+        "title": "行走20岁活动：广东小三峡！清远飞来峡，俯瞰北江风光 - 知乎",
+        "source": "zhuanlan.zhihu.com",
+        "query": "清远 飞来峡",
+        "local": ""
+      },
+      "北江夜游": {
+        "url": "https://huacheng.gz-cmc.com/upload/news/image/2023/04/17/4deae38aea5540928ac3593823041c5a.jpeg",
+        "page": "https://huacheng.gz-cmc.com/pages/2023/04/17/37259b37cd3b41f39f0cb117d5b16cce.html",
+        "title": "清远：北江夜游回暖",
+        "source": "huacheng.gz-cmc.com",
+        "query": "清远 北江夜游",
+        "local": ""
+      },
+      "北江南岸公园": {
+        "url": "http://www.sh5mcc.com/qyxw/fgsxw/202303/W020230309766352158489.jpg",
+        "page": "http://www.sh5mcc.com/qyxw/fgsxw/202303/t20230309_442430.html",
+        "title": "三公司承建的清远北江南岸公园全段贯通 - 五冶集团上海有限公司2023",
+        "source": "sh5mcc.com",
+        "query": "清远 北江南岸公园",
+        "local": ""
+      },
+      "清远市博物馆": {
+        "url": "https://img1.qunarzz.com/travel/d3/1804/c8/4683e060c58888b5.jpg",
+        "page": "https://touch.travel.qunar.com/comment/5797723",
+        "title": "2026清远市博物馆游玩攻略,我：你也也可以，爸爸已经教...【去哪儿攻略】",
+        "source": "去哪儿",
+        "query": "清远 清远市博物馆",
+        "local": ""
+      },
+      "洞天仙境": {
+        "url": "https://res.klook.com/image/upload/c_crop,h_1124,w_1798,x_101,y_0,z_0.2/w_1265,h_791,c_fill,q_85/w_80,x_15,y_15,g_south_west,l_Klook_water_br_trans_yhcmh3/activities/zsbvs7biu3ndwfcmxz0w.jpg",
+        "page": "https://www.klook.cn/zh-CN/activity/200302-qingyuan-yingxi-karst-peaks-wonderland-private-tour/",
+        "title": "清远英西峰林走廊+洞天仙境私家一日游 - Klook",
+        "source": "klook.cn",
+        "query": "清远 洞天仙境",
+        "local": ""
+      },
+      "牛鱼嘴原始生态风景区": {
+        "url": "https://n.sinaimg.cn/sinacn10113/671/w1668h1403/20191108/569b-ihyxcrq6900943.jpg",
+        "page": "https://k.sina.cn/article_7014734679_p1a21c5b5700100knu6.html?from=travel",
+        "title": "这里是清远最好玩的牛鱼嘴原始生态风景区欢迎你",
+        "source": "k.sina.cn",
+        "query": "清远 牛鱼嘴原始生态风景区",
+        "local": ""
+      },
+      "桃花湖": {
+        "url": "http://5b0988e595225.cdn.sohucs.com/images/20180409/459a53dd005c40038927960dd7a24d7f.jpeg",
+        "page": "http://www.dashangu.com/postimg_16031244.html",
+        "title": "清远桃花湖游玩攻略,清远桃花湖,清远旅游_大山谷图库",
+        "source": "dashangu.com",
+        "query": "清远 桃花湖",
+        "local": ""
+      },
+      "天塘山": {
+        "url": "http://www.chens.org.cn/upload/2015-11/15110408594175.jpg",
+        "page": "http://www.chens.org.cn/show.aspx?id=863&cid=10",
+        "title": "阳东区凤台后裔到清远天塘山拜祭凤台古墓",
+        "source": "chens.org.cn",
+        "query": "清远 天塘山",
+        "local": ""
+      },
+      "油岭古寨": {
+        "url": "https://www.zainabian.com/static/images/guangdong/qingyuan/guangdong_qingyuan_liannan.jpg?q=80&w=1200",
+        "page": "https://www.zainabian.com/guangdong/qingyuan/liannan-travel/",
+        "title": "2026年清远市连南瑶族自治县旅游攻略 | 南岗千年瑶寨+油岭古寨 | 2天1晚瑶族文化之旅",
+        "source": "zainabian.com",
+        "query": "清远 油岭古寨",
+        "local": ""
+      },
+      "阳山秤架干坑古树群": {
+        "url": "https://photo.tuchong.com/3553207/f/885402259.jpg",
+        "page": "https://lxoutdoor.tuchong.com/112248691/",
+        "title": "清远阳山秤架桥 - 龙啸奇遇记",
+        "source": "lxoutdoor.tuchong.com",
+        "query": "清远 阳山秤架干坑古树群",
+        "local": ""
+      }
+    },
+    "丹东": {
+      "鸭绿江断桥": {
+        "url": "http://vip-public.people.com.cn/photo/2021/8/18/09b652cbc9b34c0f90336e822230a660XfLv_m.jpg",
+        "page": "http://vip.people.com.cn/albumsDetail?aid=1464565&pid=10375047",
+        "title": "辽宁丹东：鸭绿江断桥风光-人民图片网",
+        "source": "人民网",
+        "query": "丹东 鸭绿江断桥",
+        "local": "references/images/丹东/鸭绿江断桥.jpg"
+      },
+      "鸭绿江游船": {
+        "url": "https://res.klook.com/image/upload/c_fill,w_627,h_470/q_80/w_80,x_15,y_15,g_south_west,l_Klook_water_br_trans_yhcmh3/activities/bb9aypwndxeeyqxg4ttu.jpg",
+        "page": "https://www.klook.cn/zh-CN/activity/161157-one-day-private-guided-tour-in-dandong-tiger-mountain-great-wall/",
+        "title": "东北辽宁丹东一日游（丹东中朝边境+上河口国门+鸭绿江游船） - Klook客路",
+        "source": "klook.cn",
+        "query": "丹东 鸭绿江游船",
+        "local": "references/images/丹东/鸭绿江游船.jpg"
+      },
+      "安东老街": {
+        "url": "https://img95.699pic.com/photo/50123/4268.jpg_wh860.jpg",
+        "page": "https://699pic.com/tupian-501234268.html",
+        "title": "丹东安东老街内景戏台高清图片下载-正版图片501234268-摄图网",
+        "source": "699pic.com",
+        "query": "丹东 安东老街",
+        "local": "references/images/丹东/安东老街.jpg"
+      },
+      "抗美援朝纪念馆": {
+        "url": "https://p8.itc.cn/images01/20210630/e8698a9633cb4aea83ed0f64d9bc365c.jpeg",
+        "page": "https://www.sohu.com/a/474894394_384664",
+        "title": "走进“英雄城市”辽宁丹东，探访抗美援朝纪念馆，致敬最可爱的人_志愿军",
+        "source": "搜狐",
+        "query": "丹东 抗美援朝纪念馆",
+        "local": ""
+      },
+      "月亮岛": {
+        "url": "https://img95.699pic.com/video_cover/80/97/96/a_42pX7ysmTMKN1601809796.jpg!/fw/820",
+        "page": "https://699pic.com/video-122520.html",
+        "title": "中国最大边境城市丹东月亮岛城市风光延时视频mp4格式视频下载_正版视频编号122520-摄图网",
+        "source": "699pic.com",
+        "query": "丹东 月亮岛",
+        "local": ""
+      }
+    }
+  }
+}

@@ -31,7 +31,7 @@ CN_NUM = {"一": 1, "二": 2, "三": 3, "四": 4, "五": 5, "六": 6, "七": 7, 
           "九": 9, "十": 10}
 TITLE_RE = re.compile(r"^([一二三四五六七八九十]+)、\s*(.+?)(?:（(.+?)）)?\s*$")
 TABLE_COLS = ["景点", "门票(元)", "游玩时长", "区域", "类别", "省钱等级",
-              "必去指数", "开放时间", "核心评价"]
+              "必去指数", "开放时间", "核心评价", "图片"]
 STAR_RE = re.compile(r"^★{1,5}[☆]{0,4}$")
 SAVING_RE = re.compile(r"^(⭐|💰)+$")
 VALID_TICKET = re.compile(
@@ -61,6 +61,14 @@ def check_attractions(city_filter: str = "") -> None:
     text = path.read_text(encoding="utf-8")
     sections = re.split(r"\n##\s+", text)
     registry = generate_plan.registry_cities()
+    image_index = {}
+    idx_path = REFS / "image_index.json"
+    if idx_path.exists():
+        try:
+            image_index = (json.loads(idx_path.read_text(encoding="utf-8"))
+                           .get("cities") or {})
+        except ValueError:
+            err("image_index.json 不是合法 JSON")
 
     seen_sections = 0
     expected_no = 1
@@ -96,16 +104,18 @@ def check_attractions(city_filter: str = "") -> None:
         if city not in registry:
             err(f"[{city}] 未在 references/travel_data.json 的 cities 里注册")
 
-        # 表格列数
+        # 表格列数（「图片」列可选）
         rows = []
+        ncols_ok = (len(TABLE_COLS), len(TABLE_COLS) - 1)
         for line in section.splitlines():
             line = line.strip()
             if not line.startswith("|"):
                 continue
             cells = [c.strip() for c in line.strip("|").split("|")]
-            if len(cells) != len(TABLE_COLS):
+            if len(cells) not in ncols_ok:
                 if cells and cells[0] in TABLE_COLS:
-                    err(f"[{city}] 表头列数 {len(cells)} != {len(TABLE_COLS)}")
+                    err(f"[{city}] 表头列数 {len(cells)}，应为 {len(TABLE_COLS)}"
+                        f"（含「图片」列）或 {len(TABLE_COLS) - 1}（不含）")
                 continue
             if cells[0] in TABLE_COLS:
                 continue
@@ -150,6 +160,26 @@ def check_attractions(city_filter: str = "") -> None:
             if category and not generate_plan.category_is_matched(category):
                 warn(f"[{city}] {name}：类别「{category}」匹配不到任何风格 —— "
                      f"请在 travel_data.json 的 style_categories 补关键词")
+
+            # 图片列
+            if len(cells) > 9 and cells[9]:
+                url = generate_plan._parse_image(cells[9])
+                if not url:
+                    err(f"[{city}] {name}：图片列写法非法 → {cells[9][:40]!r}"
+                        f"（应为 ![名称](URL)）")
+                elif not url.startswith("http"):
+                    local = REFS.parent / url if not url.startswith("references/") \
+                        else ROOT / url
+                    if not local.exists():
+                        err(f"[{city}] {name}：图片本地文件不存在 → {url}")
+                else:
+                    known = (image_index.get(city) or {}).get(name)
+                    if known is None:
+                        warn(f"[{city}] {name}：图片不在 image_index.json 里"
+                             f"（跑 fetch_images.py index 补）")
+                    elif known.get("url") and known["url"] != url:
+                        warn(f"[{city}] {name}：图片链接与索引不一致"
+                             f"（跑 fetch_images.py sync 更新）")
 
         # 必吃行
         if not re.search(r"\*\*[^*\n]{0,16}?(必吃|早餐|午餐|晚餐)：\*\*", section):

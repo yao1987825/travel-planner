@@ -221,6 +221,22 @@ def _star_rating(text: str) -> float:
     return float(m.group(1)) if m else 3.0
 
 
+def _parse_image(text: str) -> str:
+    """图片列 -> 图片 URL。
+
+    支持 `![名称](url)` 与裸 URL；解析不出来返回空串（没有图不影响其它数据）。
+    """
+    text = (text or "").strip()
+    if not text:
+        return ""
+    m = re.search(r"!\[[^\]]*\]\(([^)\s]+)", text)
+    if m:
+        return m.group(1)
+    if text.startswith("http"):
+        return text
+    return ""
+
+
 def _parse_attraction_table(section: str) -> list:
     """解析一个城市章节里的 markdown 表格为景点 dict 列表。"""
     rows = []
@@ -246,6 +262,7 @@ def _parse_attraction_table(section: str) -> list:
         category = cells[4] if len(cells) > 4 else "文化"
         stars = cells[6] if len(cells) > 6 else "★★★"
         tips = cells[8] if len(cells) > 8 else ""
+        image = _parse_image(cells[9]) if len(cells) > 9 else ""
         rating = _star_rating(stars)
         attractions.append({
             "id": idx,
@@ -261,6 +278,7 @@ def _parse_attraction_table(section: str) -> list:
             "priority": int(round(rating)),
             "tips": tips,
             "description": "",
+            "image": image,
         })
     return attractions
 
@@ -511,7 +529,8 @@ class TravelPlanner:
                     "est_cost": a["ticket_price"],
                     "transport_to": transport,
                     "tips": a.get("tips", ""),
-                    "description": a.get("description", "")
+                    "description": a.get("description", ""),
+                    "image": a.get("image", ""),
                 })
                 current_time_h += int(a["avg_duration_h"]) + 1  # +1 交通/休息
 
@@ -585,6 +604,16 @@ class TravelPlanner:
         live_price_data = load_live_price_data()
         price_context_md = format_price_context(live_price_data, self.city)
 
+        # 实景图集（来自 attractions 的图片列）
+        gallery = [
+            {
+                "name": a["name"],
+                "district": a.get("district", ""),
+                "image": a.get("image", ""),
+            }
+            for a in selected if a.get("image")
+        ]
+
         return {
             "plan_id": None,
             "title": f"{self.city}{self.days}日游 · {style_str}主题",
@@ -596,6 +625,7 @@ class TravelPlanner:
             "highlights": highlights,
             "skipped": skipped,
             "days": days,
+            "gallery": gallery,
             "price_context": price_context_md,
             "price_updated_at": live_price_data.get("updated_at", ""),
         }
@@ -833,6 +863,8 @@ def print_plan(plan: dict):
                 cost_str = f"¥{cost:.0f}" if cost > 0 else "免费"
             print(f"  {item['seq']}. [{item['visit_time']}] {item['name']} ({item['duration_h']}h, {cost_str})")
             print(f"     🚇 {item['transport_to']}")
+            if item.get("image"):
+                print(f"     🖼  {item['image']}")
             if item.get("tips"):
                 print(f"     💡 {item['tips']}")
         print(f"  🍜 午餐: {day['lunch_tip']}")
@@ -932,13 +964,28 @@ def main(argv=None) -> int:
         json.dump(plan, f, ensure_ascii=False, indent=2)
     print(f"\n✅ 行程 JSON 已保存: {plan_file}")
 
-    # 2. 数据库 SQL
+    # 2. 实景图集（Markdown）
+    gallery = plan.get("gallery") or []
+    if gallery:
+        gallery_file = output / "travel_gallery.md"
+        lines = [f"# {plan['title']} · 实景图集", "",
+                 "> 图片来自公开图库/百科/游记等站点，版权归原作者所有，仅作识别参考。", ""]
+        for item in gallery:
+            lines.append(f"### {item['name']}"
+                         + (f"（{item['district']}）" if item.get("district") else ""))
+            lines.append("")
+            lines.append(f"![{item['name']}]({item['image']})")
+            lines.append("")
+        gallery_file.write_text("\n".join(lines), encoding="utf-8")
+        print(f"✅ 实景图集已保存: {gallery_file}（{len(gallery)} 张）")
+
+    # 3. 数据库 SQL
     sql_file = output / "travel_schema.sql"
     with open(sql_file, "w", encoding="utf-8") as f:
         f.write(generate_sql_schema())
     print(f"✅ 数据库建表 SQL 已保存: {sql_file}")
 
-    # 3. FastAPI 代码
+    # 4. FastAPI 代码
     api_file = output / "travel_api.py"
     with open(api_file, "w", encoding="utf-8") as f:
         f.write(generate_fastapi_code(plan))
