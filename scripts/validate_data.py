@@ -177,9 +177,13 @@ def check_attractions(city_filter: str = "") -> None:
                     if known is None:
                         warn(f"[{city}] {name}：图片不在 image_index.json 里"
                              f"（跑 fetch_images.py index 补）")
-                    elif known.get("url") and known["url"] != url:
-                        warn(f"[{city}] {name}：图片链接与索引不一致"
-                             f"（跑 fetch_images.py sync 更新）")
+                    else:
+                        expect = known.get("raw_url") or known.get("url") or ""
+                        # 兼容代理前缀：raw.githubusercontent.com 之后的路径一致即可
+                        norm = lambda u: u.split("raw.githubusercontent.com", 1)[-1]
+                        if expect and norm(url) != norm(expect):
+                            warn(f"[{city}] {name}：图片链接与索引不一致"
+                                 f"（跑 fetch_images.py github-url 更新）")
 
         # 必吃行
         if not re.search(r"\*\*[^*\n]{0,16}?(必吃|早餐|午餐|晚餐)：\*\*", section):

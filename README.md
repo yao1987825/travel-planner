@@ -205,21 +205,31 @@ python3 tests/test_journey.py --offline
 
 ## 实景图片
 
-景点不只有文字，还能「看见」：
+景点不只有文字，还能「看见」。每个景点在景点表里带一张**真实照片**（来自
+百度百科/携程/去哪儿/人民网/新浪等），索引里记录来源与原始页面，便于溯源。
 
 ```bash
-# 检索实景图（真实照片，来自百度百科/携程/去哪儿/人民网/新浪等）
+# 1) 检索实景图并建索引（真实照片）
 python3 scripts/fetch_images.py index --city 郴州
-# 把图片链接写回景点表的「图片」列
-python3 scripts/fetch_images.py sync
-# 需要离线图时下载到 references/images/<城市>/
-python3 scripts/fetch_images.py download --limit 10
+# 2) 看「该放哪些图、放哪」清单（手动补图用）
+python3 scripts/fetch_images.py manifest
+# 3) 或让脚本自动下载到 images/<城市>/
+python3 scripts/fetch_images.py download --limit 999
+# 4) 把景点表「图片」列换成 GitHub raw 链接（默认带 gh-proxy 代理前缀）
+python3 scripts/fetch_images.py github-url
 ```
 
-- 索引在 `references/image_index.json`：每张图都带**原始页面 URL** 和来源站点，便于溯源；
-- 景点表新增可选的「图片」列 `![景点名](URL)`，生成行程时会输出实景图链接，并产出
-  `travel_gallery.md` 图集；
-- 图片版权归原作者/站点所有，仓库只提交索引、不提交图片二进制。
+图片放到 `images/<城市>/<景点名>.jpg` 后，对应的展示链接就会生效：
+
+```
+https://gh-proxy.com/https://raw.githubusercontent.com/yao1987825/travel-planner/main/images/丹东/鸭绿江断桥.jpg
+```
+
+- **图片二进制默认不入库**（体积大、版权归原站），仓库提交的是索引
+  （`references/image_index.json`，含 `source`/`page`/`raw_url`）和景点表里的图片链接；
+  想让 raw 链接直接可用，把 `.gitignore` 里 `images/*/*.jpg` 那几行删掉再提交图片即可；
+- 景点表「图片」列 `![景点名](URL)` 会随行程输出，并产出 `travel_gallery.md` 图集
+  （含图片来源溯源）。
 
 ## 测试
 

@@ -27,6 +27,14 @@ dist/
 # generate_plan.py 的默认输出目录
 travel_output/
 
-# 景点实景图本地缓存（只提交索引 references/image_index.json，不提交图片二进制）
-references/images/*
-!references/images/README.md
+# 景点实景图：下载后**随仓库提交**（用 GitHub raw 展示），见 images/README.md
+
+# 景点实景图：图片二进制默认**不入库**（体积大、版权归原站）。
+# 只提交索引 references/image_index.json + 景点表里的图片链接；
+# 需要放图时按 images/README.md 的命名规则放到 images/<城市>/<景点>.jpg，
+# 对应的 GitHub raw 链接就会自动生效。
+images/*/*.jpg
+images/*/*.jpeg
+images/*/*.png
+images/*/*.webp
+images/*/*.gif

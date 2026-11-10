@@ -1,21 +1,25 @@
 #!/usr/bin/env python3
-"""fetch_images.py —— 景点实景图片索引 / 本地缓存。
+"""fetch_images.py —— 景点实景图片检索 / 下载 / GitHub raw 链接。
 
 数据来源用 Bing 图片搜索（返回的是该景点的**真实照片**，来自百度百科/携程/
 去哪儿/人民网/新浪等站点），并把**原始页面 URL 一起记下来**做署名溯源。
 
-    python3 scripts/fetch_images.py index                 # 建立/更新图片索引（只写链接，不下图）
-    python3 scripts/fetch_images.py index --city 郴州
-    python3 scripts/fetch_images.py download --limit 5     # 下载到 references/images/<城市>/
-    python3 scripts/fetch_images.py download --city 郴州 --limit 3
-    python3 scripts/fetch_images.py list --city 郴州
+    python3 scripts/fetch_images.py index --city 郴州     # 检索并建索引（只写链接，不下图）
+    python3 scripts/fetch_images.py download --limit 10   # 下载到 images/<城市>/（随仓库提交）
+    python3 scripts/fetch_images.py github-url            # 把 md 图片列换成 GitHub raw 链接
+    python3 scripts/fetch_images.py sync                  # 把索引链接写回景点表（热链模式）
+    python3 scripts/fetch_images.py list --city 郴州      # 查看索引
+
+展示链路（推荐）：
+    images/（已提交）---> https://raw.githubusercontent.com/<owner>/<repo>/<branch>/images/...
+    raw 国内访问不稳定时，加代理前缀：https://gh-proxy.com/https://raw.githubusercontent.com/...
 
 产物：
-    references/image_index.json   图片索引（城市 -> 景点 -> {url, page, title, source, local}）
-    references/images/<城市>/xxx.jpg   本地缓存（默认不入 git，见 .gitignore）
+    references/image_index.json   图片索引（城市 -> 景点 -> {url, page, title, source, local, raw_url}）
+    images/<城市>/xxx.jpg         实景图二进制（**随 git 提交**，用 GitHub raw 展示）
 
-⚠️ 版权：索引里的图片版权归原站点/作者所有，脚本只记录来源页 URL 便于溯源；
-   是否可商用需自行确认。仓库不提交图片二进制，默认只提交索引。
+⚠️ 版权：图片版权归原站点/作者所有，脚本保留原始页面 URL 便于溯源；
+   是否可商用需自行确认。
 """
 
 from __future__ import annotations
@@ -36,7 +40,12 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = Path(HERE).parent
 REFS = ROOT / "references"
 INDEX_PATH = REFS / "image_index.json"
-IMAGE_DIR = REFS / "images"
+# 图片下载到仓库顶层的 images/，随 git 提交后用 GitHub raw 链接展示。
+IMAGE_DIR = ROOT / "images"
+
+# GitHub raw 链接默认值（可用 --repo / --branch 覆盖）
+GITHUB_RAW = "https://raw.githubusercontent.com"
+DEFAULT_PROXY = "https://gh-proxy.com/"
 
 sys.path.insert(0, HERE)
 import generate_plan  # noqa: E402
@@ -228,22 +237,133 @@ def source_of(page_url: str) -> str:
 
 # ────────────────────────────────────────────────────────── 下载
 
-def download_one(url: str, dest: Path) -> bool:
-    try:
-        req = urllib.request.Request(url, headers={
-            "User-Agent": UA,
-            "Referer": "https://www.bing.com/",
-            "Accept": "image/avif,image/webp,image/apng,image/*,*/*;q=0.8",
-        })
-        with urllib.request.urlopen(req, timeout=25) as resp:
-            data = resp.read()
-        if len(data) < 3000:            # 太小多半是占位图
-            return False
-        dest.parent.mkdir(parents=True, exist_ok=True)
-        dest.write_bytes(data)
-        return True
-    except Exception:
-        return False
+def download_one(url: str, dest: Path, page: str = "") -> bool:
+    """下载图片。防盗链常见，所以换 Referer 重试。"""
+    referers = []
+    if page:
+        m = re.match(r"https?://([^/]+)", page)
+        if m:
+            referers.append(f"https://{m.group(1)}/")
+    referers.append("https://www.bing.com/")
+    referers.append("")
+
+    for ref in referers:
+        try:
+            headers = {
+                "User-Agent": UA,
+                "Accept": "image/avif,image/webp,image/apng,image/*,*/*;q=0.8",
+                "Accept-Language": "zh-CN,zh;q=0.9",
+            }
+            if ref:
+                headers["Referer"] = ref
+            req = urllib.request.Request(url, headers=headers)
+            with urllib.request.urlopen(req, timeout=20) as resp:
+                data = resp.read()
+                ctype = (resp.headers.get("Content-Type") or "").lower()
+            if len(data) < 3000:            # 太小多半是占位图/错误页
+                continue
+            if "html" in ctype:           # 返回了网页而不是图
+                continue
+            dest.parent.mkdir(parents=True, exist_ok=True)
+            dest.write_bytes(data)
+            return True
+        except Exception:
+            continue
+    return False
+
+
+def github_raw_url(rel: str, repo: str, branch: str, proxy: str = "") -> str:
+    """本地相对路径 -> GitHub raw 链接（可选代理前缀）。
+
+    rel 形如 images/丹东/鸭绿江断桥.jpg
+    """
+    base = f"{GITHUB_RAW}/{repo}/{branch}/{rel}"
+    if proxy:
+        return f"{proxy.rstrip('/')}/{base}"
+    return base
+
+
+def find_local_image(city: str, name: str) -> Optional[Path]:
+    """找本地已下载的图片（jpg/jpeg/png/webp 任意扩展名）。"""
+    safe = re.sub(r"[^\w一-鿿-]+", "_", name)
+    for ext in (".jpg", ".jpeg", ".png", ".webp"):
+        path = IMAGE_DIR / city / f"{safe}{ext}"
+        if path.exists():
+            return path
+    return None
+
+
+def cmd_github_url(args) -> int:
+    """把 md 图片列 + 索引更新为 GitHub raw 链接。
+
+    图片必须已下载到 images/（跑过 download）。链接格式：
+      https://raw.githubusercontent.com/<repo>/<branch>/images/<城市>/<景点>.jpg
+    国内访问不稳定时可加代理前缀（--proxy https://gh-proxy.com/）。
+    """
+    repo = args.repo or ""
+    if not repo:
+        # 从 git remote 自动推断 owner/repo
+        try:
+            import subprocess
+
+            remote = subprocess.check_output(
+                ["git", "config", "--get", "remote.origin.url"],
+                cwd=ROOT, text=True, stderr=subprocess.DEVNULL).strip()
+            m = re.search(r"(?:github\.com[:/])([^/]+/[^/]+?)(?:\.git)?$", remote)
+            if m:
+                repo = m.group(1)
+        except Exception:
+            repo = ""
+    if not repo:
+        print("无法推断 GitHub 仓库，请用 --repo yao1987825/travel-planner", file=sys.stderr)
+        return 1
+    branch = args.branch or "main"
+    proxy = args.proxy
+
+    # 1) 更新 md 图片列
+    md_path = REFS / "cities_attractions.md"
+    text = md_path.read_text(encoding="utf-8")
+    lines = text.splitlines()
+    out = []
+    city = ""
+    changed = 0
+    for line in lines:
+        m = re.match(r"^##\s+(?:[一二三四五六七八九十]+、)?([^\s（(]+)", line)
+        if m:
+            city = m.group(1).strip()
+        stripped = line.strip()
+        if stripped.startswith("|") and city and "---" not in stripped:
+            cells = [c.strip() for c in stripped.strip("|").split("|")]
+            if cells and cells[0] not in ("景点", "路线") and "门票" not in cells[0]:
+                name = cells[0]
+                local = find_local_image(city, name)
+                if local is not None:
+                    rel = str(local.relative_to(ROOT)).replace(os.sep, "/")
+                    raw = github_raw_url(rel, repo, branch, proxy)
+                    img_cell = f"![{name}]({raw})"
+                    if len(cells) >= 10 and cells[9].startswith("!["):
+                        if cells[9] != img_cell:
+                            cells[9] = img_cell
+                            changed += 1
+                    else:
+                        cells.append(img_cell)
+                        changed += 1
+                    line = "| " + " | ".join(cells) + " |"
+        out.append(line)
+    md_path.write_text("\n".join(out) + "\n", encoding="utf-8")
+    print(f"已更新 md 图片列：{changed} 行 -> GitHub raw（repo={repo} branch={branch}）")
+
+    # 2) 更新索引的 raw_url 字段
+    index = load_index()
+    for cname, items in index.get("cities", {}).items():
+        for aname, meta in items.items():
+            local = find_local_image(cname, aname)
+            if local is not None:
+                rel = str(local.relative_to(ROOT)).replace(os.sep, "/")
+                meta["raw_url"] = github_raw_url(rel, repo, branch, proxy)
+                meta["local"] = rel
+    save_index(index)
+    return 0
 
 
 def cmd_download(args) -> int:
@@ -265,7 +385,7 @@ def cmd_download(args) -> int:
                 meta["local"] = str(dest.relative_to(ROOT))
                 saved += 1
                 continue
-            if download_one(meta["url"], dest):
+            if download_one(meta["url"], dest, meta.get("page", "")):
                 meta["local"] = str(dest.relative_to(ROOT))
                 saved += 1
                 print(f"  ✓ {city}/{name} -> {meta['local']}")
@@ -319,6 +439,43 @@ def cmd_sync(args) -> int:
     return 0
 
 
+def cmd_manifest(args) -> int:
+    """打印「图片应该放在哪」的清单（手动补图时照着放即可）。
+
+    输出格式：<状态> images/<城市>/<文件名>   ← 索引里的 raw_url / 原始链接
+    状态：OK=本地已有；MISSING=缺图（原始链接仍可用）；LOCAL_ONLY=本地有但没进索引
+    """
+    index = load_index()
+    cities = index.get("cities", {})
+    if args.city:
+        cities = {k: v for k, v in cities.items() if k == args.city}
+    ok = missing = 0
+    for city, items in cities.items():
+        if not items:
+            continue
+        print(f"\n== {city} ==")
+        for name, meta in items.items():
+            local = find_local_image(city, name)
+            rel = meta.get("local") or ""
+            if not rel:
+                safe = re.sub(r"[^\w一-鿿-]+", "_", name)
+                rel = f"images/{city}/{safe}.jpg"
+            if local is not None:
+                status = "OK      "
+                ok += 1
+            else:
+                status = "MISSING "
+                missing += 1
+            extra = meta.get("raw_url") or meta.get("url") or ""
+            print(f"  {status} {rel}")
+            if extra and not local:
+                print(f"           备用(原站直链): {extra}")
+                if meta.get("page"):
+                    print(f"           原始页面: {meta['page']}")
+    print(f"\n本地已有 {ok} 张，缺 {missing} 张")
+    return 0
+
+
 def cmd_list(args) -> int:
     index = load_index()
     cities = index.get("cities", {})
@@ -352,6 +509,17 @@ def main(argv=None) -> int:
 
     p = sub.add_parser("sync", help="把索引里的图片链接写回 cities_attractions.md")
     p.set_defaults(func=cmd_sync)
+
+    p = sub.add_parser("github-url", help="把 md 图片列换成 GitHub raw 链接（图片需先下载）")
+    p.add_argument("--repo", default="", help="GitHub 仓库 owner/repo，默认从 git remote 推断")
+    p.add_argument("--branch", default="main", help="分支名，默认 main")
+    p.add_argument("--proxy", default=DEFAULT_PROXY,
+                   help="raw 链接代理前缀（默认 gh-proxy.com，不需要传空串）")
+    p.set_defaults(func=cmd_github_url)
+
+    p = sub.add_parser("manifest", help="打印图片应放位置的清单（手动补图用）")
+    p.add_argument("--city", help="只显示某个城市")
+    p.set_defaults(func=cmd_manifest)
 
     p = sub.add_parser("list", help="查看索引")
     p.add_argument("--city", help="只显示某个城市")

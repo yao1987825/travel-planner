@@ -111,37 +111,62 @@
 
 ---
 
-## 3. 实景图片（`references/images/` + `references/image_index.json`）
+## 3. 实景图片（`images/` + `references/image_index.json`）
 
-景点除了文字，还得能「看见」。图片体系分两层：
+景点除了文字，还得能「看见」。图片**随仓库提交**，用 GitHub raw 链接稳定展示，
+不依赖原始网站的临时链接。
 
 | 文件 | 内容 | 进 git |
 |------|------|--------|
-| `references/image_index.json` | 图片索引：城市 → 景点 → `{url, page, title, source, query, local}` | ✅ |
-| `references/images/<城市>/<景点>.jpg` | 图片二进制本地缓存 | ❌（见 `.gitignore`） |
+| `references/image_index.json` | 图片索引：城市 → 景点 → `{url, page, title, source, query, local, raw_url}` | ✅ |
+| `images/<城市>/<景点>.jpg` | 实景图二进制 | ❌ 默认不入库（体积大、版权归原站）；放进去后 raw 链接自动生效 |
 
 ### 3.1 索引字段
 
 | 字段 | 说明 |
 |------|------|
-| `url` | 图片直链（热链展示用） |
+| `url` | 图片原始直链（来源站点的图，可能防盗链/过期） |
+| `raw_url` | **GitHub raw 链接**（`https://raw.githubusercontent.com/<owner>/<repo>/<branch>/images/...`） |
 | `page` | **原始页面 URL** —— 溯源用，这张图出自哪个站点的哪篇内容 |
 | `title` | 原站标题 |
 | `source` | 来源站点（百度百科 / 携程 / 去哪儿 / 人民网 / 新浪…） |
 | `query` | 检索时用的关键词（便于人工复核） |
-| `local` | 本地缓存相对路径（下载后才有） |
+| `local` | 图片在仓库里的相对路径（`images/...`） |
 
-### 3.2 怎么加图
+### 3.2 加图 + 发布到 GitHub
 
 ```bash
-python3 scripts/fetch_images.py index --city 郴州      # 检索并写入索引
-python3 scripts/fetch_images.py sync                   # 把链接写回景点表「图片」列
-python3 scripts/fetch_images.py download --limit 10    # 需要离线图时再下载
+# 1) 检索并写入索引（只写原始链接）
+python3 scripts/fetch_images.py index --city 郴州
+# 2) 看「该放哪些图、放哪」的清单（手动补图时照着放）
+python3 scripts/fetch_images.py manifest --city 郴州
+#    或者让脚本自动下载到 images/<城市>/
+python3 scripts/fetch_images.py download --limit 999
+# 3) 把 md 图片列换成 GitHub raw 链接（默认带 gh-proxy 代理前缀）
+python3 scripts/fetch_images.py github-url
+#    不要代理时： --proxy ""
+#    指定仓库时： --repo yao1987825/travel-planner --branch main
+# 4) 提交索引与链接（图片二进制默认不入库）
+git add references/image_index.json references/cities_attractions.md
+git commit -m "data(images): 更新景点实景图索引"
+git push
 ```
 
-`sync` 会在表格末尾追加/更新「图片」列，其它内容原样保留。
+> 图片文件名规则：`images/<城市>/<景点名>.jpg`，景点名里的特殊字符替换成 `_`
+> （`东江湖（雾漫小东江）` → `东江湖_雾漫小东江_.jpg`）。
+> `manifest` 命令会把清单和每个缺失项的**原站直链 + 原始页面**都列出来。
 
-### 3.3 图片规则
+### 3.3 展示链路
+
+```
+GitHub raw 直链：
+    https://raw.githubusercontent.com/yao1987825/travel-planner/main/images/丹东/鸭绿江断桥.jpg
+
+国内网络 raw 不稳定时，加代理前缀（github-url 默认会加）：
+    https://gh-proxy.com/https://raw.githubusercontent.com/yao1987825/travel-planner/main/images/丹东/鸭绿江断桥.jpg
+```
+
+### 3.4 图片规则
 
 - **必须是该景点的真实照片**，不许用风格相近的风景图充数；
 - 检索按「城市 + 景点名」，并设**硬门槛**：标题/页面里必须出现景点名本身
@@ -150,7 +175,7 @@ python3 scripts/fetch_images.py download --limit 10    # 需要离线图时再�
 - 菜谱/游戏/房价等无关结果直接排除；
 - 找不到就**留空**，不硬凑（`大唐演义` 就是没配到图，如实留空）；
 - **必须记 `page`（原始页面）**，图片版权属原作者/站点，索引只做检索与溯源；
-- 仓库不提交图片二进制，只提交索引（链接 + 来源）。
+- 原始链接若防盗链/过期，以 `raw_url`（GitHub raw）为准。
 
 ---
 
