@@ -23,6 +23,10 @@ jobs:
       - name: Offline checks
         run: python3 tests/test_journey.py --offline
 
+      # 离线断言：图片图集（渲染 / 来源标注 / 入口串联）
+      - name: Visual gallery checks
+        run: python3 tests/test_visual_gallery.py
+
       # 在线断言：公交 / 地铁 / 天气 / 12306 + 跨方式编排
       - name: End-to-end checks
         run: python3 tests/test_journey.py

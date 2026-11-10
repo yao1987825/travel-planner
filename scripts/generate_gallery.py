@@ -27,6 +27,20 @@ def _read_json(path: Path) -> dict[str, Any]:
     return data
 
 
+def _valid_image(url: str) -> bool:
+    """图片地址是否可用：只接受 http(s) 或仓库内相对路径。
+
+    挡掉 javascript:/data: 这类协议（渲染出来是破图，还可能有安全风险）。
+    """
+    if not url:
+        return False
+    if url.startswith(("http://", "https://", "/", "./", "../")):
+        return True
+    if "://" in url or url.lower().startswith(("data:", "javascript:", "file:", "vbscript:")):
+        return False
+    return True
+
+
 def build_gallery(plan: dict[str, Any], story_data: dict[str, Any]) -> list[dict[str, str]]:
     """Merge selected attraction images with curated visual stories for the city."""
     city = str(plan.get("city") or "").strip()
@@ -43,7 +57,7 @@ def build_gallery(plan: dict[str, Any], story_data: dict[str, Any]) -> list[dict
     for item in plan.get("gallery") or []:
         name = str(item.get("name") or "").strip()
         image = str(item.get("image") or "").strip()
-        if not name or not image:
+        if not name or not _valid_image(image):
             continue
         card = {
             "name": name,
@@ -65,7 +79,7 @@ def build_gallery(plan: dict[str, Any], story_data: dict[str, Any]) -> list[dict
             continue
         name = str(item.get("name") or "").strip()
         image = str(item.get("image") or "").strip()
-        if not name or not image:
+        if not name or not _valid_image(image):
             continue
         card = {
             "name": name,

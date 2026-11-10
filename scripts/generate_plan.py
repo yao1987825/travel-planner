@@ -118,6 +118,16 @@ def registry_cities() -> dict:
     return load_registry().get("cities", {}) or {}
 
 
+def load_image_index() -> dict:
+    """读取 references/image_index.json（景点图片来源索引：城市 -> 景点 -> 元信息）。"""
+    path = REFS_DIR / "image_index.json"
+    try:
+        with open(path, "r", encoding="utf-8") as fh:
+            return json.load(fh).get("cities", {}) or {}
+    except (OSError, ValueError):
+        return {}
+
+
 def style_categories() -> dict:
     """风格 -> 类别关键词表（数据驱动；注册表缺失时用内置默认值）。"""
     data = load_registry().get("style_categories")
@@ -604,15 +614,22 @@ class TravelPlanner:
         live_price_data = load_live_price_data()
         price_context_md = format_price_context(live_price_data, self.city)
 
-        # 实景图集（来自 attractions 的图片列）
-        gallery = [
-            {
+        # 实景图集（来自 attractions 的图片列）+ 图片来源（来自 image_index.json）
+        image_meta = load_image_index().get(self.city, {}) or {}
+        gallery = []
+        for a in selected:
+            url = a.get("image", "")
+            if not url:
+                continue
+            meta = image_meta.get(a["name"], {}) or {}
+            gallery.append({
                 "name": a["name"],
                 "district": a.get("district", ""),
-                "image": a.get("image", ""),
-            }
-            for a in selected if a.get("image")
-        ]
+                "image": url,
+                # 溯源信息：来源站点 + 原始页面（没有索引时留空，不编造）
+                "source": meta.get("source", ""),
+                "source_url": meta.get("page", ""),
+            })
 
         return {
             "plan_id": None,
@@ -964,28 +981,16 @@ def main(argv=None) -> int:
         json.dump(plan, f, ensure_ascii=False, indent=2)
     print(f"\n✅ 行程 JSON 已保存: {plan_file}")
 
-    # 2. 实景图集（Markdown）
-    gallery = plan.get("gallery") or []
-    if gallery:
-        gallery_file = output / "travel_gallery.md"
-        lines = [f"# {plan['title']} · 实景图集", "",
-                 "> 图片来自公开图库/百科/游记等站点，版权归原作者所有，仅作识别参考。", ""]
-        for item in gallery:
-            lines.append(f"### {item['name']}"
-                         + (f"（{item['district']}）" if item.get("district") else ""))
-            lines.append("")
-            lines.append(f"![{item['name']}]({item['image']})")
-            lines.append("")
-        gallery_file.write_text("\n".join(lines), encoding="utf-8")
-        print(f"✅ 实景图集已保存: {gallery_file}（{len(gallery)} 张）")
+    # 说明：图片图集由 generate_gallery.py 统一渲染（travel plan / generate_trip.py 入口），
+    # 这里不再重复写 travel_gallery.md —— 否则同一个文件会被写两遍、两种格式并存。
 
-    # 3. 数据库 SQL
+    # 2. 数据库 SQL
     sql_file = output / "travel_schema.sql"
     with open(sql_file, "w", encoding="utf-8") as f:
         f.write(generate_sql_schema())
     print(f"✅ 数据库建表 SQL 已保存: {sql_file}")
 
-    # 4. FastAPI 代码
+    # 3. FastAPI 代码
     api_file = output / "travel_api.py"
     with open(api_file, "w", encoding="utf-8") as f:
         f.write(generate_fastapi_code(plan))

@@ -41,6 +41,28 @@ python3 scripts/generate_trip.py --profile profile.json --output ./trip
 
 上面的名称和 URL 仅为格式示例，不是项目的真实店铺推荐。尚无可信图片时先不要添加记录，也不要用相似风景图代替。避免把个人订单、预约凭证、二维码或证件信息放进公开数据。
 
+## 景点图片从哪来
+
+景点卡片**不需要**在这里重复登记 —— `generate_plan.py` 会从
+`references/image_index.json`（由 `scripts/fetch_images.py` 检索生成）带上：
+
+- `image` —— 图片地址（GitHub raw / 原始直链）
+- `source` —— 来源站点（人民网 / 百度百科 / 携程 …）
+- `source_url` —— **原始页面**（溯源用，图集里会渲染成「图片来源」）
+
+所以图集里每个景点都会自动带来源；`visual_stories.json` 只用于补充
+**景点之外**的内容（实测美食、店铺、打卡点）或覆盖已有条目的文案。
+
+## 两个入口的分工
+
+| 命令 | 产出 |
+|------|------|
+| `travel plan --profile p.json --output ./trip` | travel_plan.json + **travel_gallery.md** + SQL + API 骨架 |
+| `python3 scripts/generate_trip.py --profile p.json --output ./trip` | 同上 |
+| `python3 scripts/generate_plan.py --profile p.json --output ./trip` | **只有** travel_plan.json（不写图集） |
+
+图集文件统一由 `generate_gallery.py` 渲染，避免同一个文件被写两遍、两种格式并存。
+
 ## 校验
 
 ```bash

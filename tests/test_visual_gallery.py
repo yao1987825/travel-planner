@@ -77,6 +77,51 @@ class GalleryTests(unittest.TestCase):
         self.assertEqual(result, 0)
         gallery_main.assert_not_called()
 
+    def test_trip_entrypoint_reads_sys_argv_when_argv_is_none(self):
+        """回归：argv=None 时必须取命令行实参，否则 --profile/--output 全被丢弃。"""
+        with tempfile.TemporaryDirectory() as temp_dir:
+            output = Path(temp_dir)
+            plan_path = output / "travel_plan.json"
+            seen = {}
+
+            def fake_plan_main(argv):
+                seen["argv"] = list(argv)
+                plan_path.write_text('{"city":"郴州"}', encoding="utf-8")
+                return 0
+
+            with patch.object(sys, "argv", ["generate_trip.py", "--profile", "p.json",
+                                            "--output", str(output)]), \
+                    patch.object(generate_trip.generate_plan, "main", side_effect=fake_plan_main), \
+                    patch.object(generate_trip.generate_gallery, "main", return_value=0):
+                result = generate_trip.main()
+
+            self.assertEqual(result, 0)
+            self.assertIn("--profile", seen["argv"])
+            self.assertIn(str(output), seen["argv"])
+
+    def test_gallery_keeps_image_source_for_attribution(self):
+        """plan 的 gallery 里带了 source/source_url 时，图集要渲染出来源。"""
+        plan = {
+            "city": "丹东",
+            "gallery": [{"name": "鸭绿江断桥", "district": "丹东市振兴区",
+                         "image": "https://img.example/bridge.jpg",
+                         "source": "人民网", "source_url": "https://example.com/p"}],
+        }
+        cards = generate_gallery.build_gallery(plan, {"cities": {}})
+        self.assertEqual(cards[0]["source"], "人民网")
+        self.assertEqual(cards[0]["source_url"], "https://example.com/p")
+        markdown = generate_gallery.render_gallery("丹东一日游", cards)
+        self.assertIn("人民网", markdown)
+        self.assertIn("https://example.com/p", markdown)
+
+    def test_invalid_image_url_is_skipped(self):
+        plan = {"city": "郴州", "gallery": [
+            {"name": "坏的", "image": "javascript:alert(1)"},
+            {"name": "好的", "image": "images/郴州/好的.jpg"},
+        ]}
+        cards = generate_gallery.build_gallery(plan, {"cities": {}})
+        self.assertEqual([c["name"] for c in cards], ["好的"])
+
 
 if __name__ == "__main__":
     unittest.main()
